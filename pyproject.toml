@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "usecvislib-mcp"
+version = "0.1.0"
+description = "MCP server for USecVisLib security visualization library"
+license = "Apache-2.0"
+requires-python = ">=3.10"
+authors = [
+    {name = "VULNEX", email = "info@vulnex.com"},
+]
+keywords = ["mcp", "security", "visualization", "attack-tree", "threat-modeling"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Security",
+]
+dependencies = [
+    "mcp>=1.0.0",
+    "usecvislib>=0.3.4",
+]
+
+[project.optional-dependencies]
+dev = [
+    "mcp[cli]",
+    "pytest>=8.0",
+    "pytest-asyncio>=0.23",
+]
+
+[project.scripts]
+usecvislib-mcp = "usecvislib_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]

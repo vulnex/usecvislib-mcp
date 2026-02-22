@@ -1,0 +1,18 @@
+FROM usecvislib-usecvislib-api:latest
+
+USER root
+
+# Copy MCP package
+COPY usecvislib-mcp/ /app/usecvislib-mcp/
+
+# Install MCP package with dev deps
+RUN pip install --no-cache-dir -e /app/usecvislib-mcp[dev]
+
+# Fix ownership
+RUN chown -R appuser:appuser /app/usecvislib-mcp
+
+USER appuser
+
+WORKDIR /app/usecvislib-mcp
+
+CMD ["python", "-m", "pytest", "tests/", "-v"]
