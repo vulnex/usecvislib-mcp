@@ -1,0 +1,79 @@
+"""MCP tool for batch processing multiple visualizations."""
+
+import asyncio
+import json
+import uuid
+
+from usecvislib import USecVisLibError, process_batch
+
+from ..config import get_output_dir, get_temp_dir
+from ..helpers import format_error
+from ..server import mcp
+
+
+@mcp.tool()
+async def batch_process(
+    module_type: str,
+    configs: list[dict],
+    format: str = "png",
+    style: str = "",
+    max_workers: int = 4,
+) -> str:
+    """Batch-process multiple visualization configs in parallel.
+
+    Writes each config as a temporary file, runs process_batch(),
+    and returns a summary with individual results.
+
+    Args:
+        module_type: Visualization type — 'attack_tree', 'attack_graph',
+                     'threat_model', 'privilege_gradient', 'component_diagram',
+                     or 'dependency_graph'.
+        configs: List of configuration dictionaries to process.
+        format: Output format — png, pdf, svg, or dot.
+        style: Style ID to apply (empty string for default).
+        max_workers: Maximum parallel workers.
+
+    Returns:
+        JSON with summary (success/failure counts) and individual results.
+    """
+    try:
+
+        def _sync_batch():
+            temp_dir = get_temp_dir()
+            temp_dir.mkdir(parents=True, exist_ok=True)
+            output_dir = get_output_dir()
+            output_dir.mkdir(parents=True, exist_ok=True)
+
+            batch_id = uuid.uuid4().hex[:8]
+            temp_files = []
+            try:
+                # Write each config to a temp file
+                for i, cfg in enumerate(configs):
+                    temp_path = temp_dir / f"batch_{batch_id}_{i}.json"
+                    temp_path.write_text(
+                        json.dumps(cfg, indent=2), encoding="utf-8"
+                    )
+                    temp_files.append(str(temp_path))
+
+                result = process_batch(
+                    module_type=module_type,
+                    input_files=temp_files,
+                    output_dir=str(output_dir),
+                    format=format,
+                    style=style or None,
+                    max_workers=max_workers,
+                )
+                return result.to_dict()
+            finally:
+                # Clean up temp files
+                for tf in temp_files:
+                    try:
+                        __import__("pathlib").Path(tf).unlink(missing_ok=True)
+                    except OSError:
+                        pass
+
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, _sync_batch)
+        return json.dumps(result, indent=2, default=str)
+    except (USecVisLibError, Exception) as e:
+        return format_error(e)

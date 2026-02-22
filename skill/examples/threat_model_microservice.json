@@ -1,0 +1,114 @@
+{
+  "model": {
+    "name": "Microservice Threat Model",
+    "description": "DFD for API gateway with backend microservices"
+  },
+  "processes": {
+    "api_gateway": {
+      "label": "API Gateway",
+      "sanitizesInput": true,
+      "hasAccessControl": true
+    },
+    "auth_service": {
+      "label": "Auth Service",
+      "sanitizesInput": true,
+      "hasAccessControl": true
+    },
+    "order_service": {
+      "label": "Order Service",
+      "sanitizesInput": false,
+      "hasAccessControl": true
+    }
+  },
+  "datastores": {
+    "user_db": {
+      "label": "User Database",
+      "isEncrypted": true,
+      "storesPII": true
+    },
+    "order_db": {
+      "label": "Order Database",
+      "isEncrypted": true,
+      "storesPII": false
+    },
+    "cache": {
+      "label": "Redis Cache",
+      "isEncrypted": false,
+      "storesPII": false
+    }
+  },
+  "externals": {
+    "mobile_app": {
+      "label": "Mobile App",
+      "isTrusted": false
+    },
+    "admin_user": {
+      "label": "Admin User",
+      "isTrusted": true
+    },
+    "payment_provider": {
+      "label": "Payment Provider",
+      "isTrusted": true
+    }
+  },
+  "dataflows": {
+    "f1": {
+      "from": "mobile_app",
+      "to": "api_gateway",
+      "label": "HTTPS REST",
+      "isEncrypted": true
+    },
+    "f2": {
+      "from": "admin_user",
+      "to": "api_gateway",
+      "label": "HTTPS Admin",
+      "isEncrypted": true
+    },
+    "f3": {
+      "from": "api_gateway",
+      "to": "auth_service",
+      "label": "gRPC Auth",
+      "isEncrypted": true
+    },
+    "f4": {
+      "from": "api_gateway",
+      "to": "order_service",
+      "label": "gRPC Orders",
+      "isEncrypted": true
+    },
+    "f5": {
+      "from": "auth_service",
+      "to": "user_db",
+      "label": "SQL",
+      "isEncrypted": false
+    },
+    "f6": {
+      "from": "order_service",
+      "to": "order_db",
+      "label": "SQL",
+      "isEncrypted": false
+    },
+    "f7": {
+      "from": "api_gateway",
+      "to": "cache",
+      "label": "Redis Protocol",
+      "isEncrypted": false
+    },
+    "f8": {
+      "from": "order_service",
+      "to": "payment_provider",
+      "label": "HTTPS",
+      "isEncrypted": true
+    }
+  },
+  "boundaries": {
+    "dmz": {
+      "label": "DMZ",
+      "elements": ["api_gateway"]
+    },
+    "internal": {
+      "label": "Internal Network",
+      "elements": ["auth_service", "order_service", "user_db", "order_db", "cache"]
+    }
+  }
+}

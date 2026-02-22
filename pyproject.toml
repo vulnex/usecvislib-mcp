@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "usecvislib-mcp"
-version = "0.1.0"
+version = "0.4.0"
 description = "MCP server for USecVisLib security visualization library"
 license = "Apache-2.0"
 requires-python = ">=3.10"
@@ -23,6 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "mcp>=1.0.0",
+    "uvicorn>=0.30.0",
     "usecvislib>=0.3.4",
 ]
 

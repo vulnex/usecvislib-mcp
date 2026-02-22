@@ -104,3 +104,54 @@ async def search_cloud_icons(
         return json.dumps(result, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
+
+
+@mcp.tool()
+async def list_cloud_providers() -> str:
+    """List available cloud providers for diagram generation.
+
+    Returns provider IDs and display names for use with
+    generate_cloud_diagram and list_cloud_icons.
+
+    Returns:
+        JSON list of provider dictionaries with 'id' and 'name'.
+    """
+    try:
+
+        def _sync_list():
+            return CloudDiagrams.list_providers()
+
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, _sync_list)
+        return json.dumps(result, indent=2, default=str)
+    except (USecVisLibError, Exception) as e:
+        return format_error(e)
+
+
+@mcp.tool()
+async def list_cloud_icons(
+    provider: str,
+    category: str = "",
+) -> str:
+    """List available icons for a specific cloud provider.
+
+    Returns icon definitions that can be used in cloud diagram node
+    configurations. Optionally filter by icon category.
+
+    Args:
+        provider: Cloud provider ID (e.g. 'aws', 'gcp', 'azure').
+        category: Filter by icon category (empty for all categories).
+
+    Returns:
+        JSON list of icon dictionaries with id, path, name, category.
+    """
+    try:
+
+        def _sync_list():
+            return CloudDiagrams.list_icons(provider, category or None)
+
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, _sync_list)
+        return json.dumps(result, indent=2, default=str)
+    except (USecVisLibError, Exception) as e:
+        return format_error(e)

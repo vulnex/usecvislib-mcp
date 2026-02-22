@@ -5,12 +5,15 @@ import os
 from usecvislib_mcp.config import (
     configure_logging,
     ensure_directories,
+    get_api_key,
     get_default_format,
     get_env,
+    get_host,
     get_log_level,
     get_max_config_size,
     get_output_dir,
     get_output_mode,
+    get_port,
     get_temp_dir,
     get_transport,
     resolve_models_dir,
@@ -91,6 +94,53 @@ def test_resolve_models_dir():
     """Models dir resolves to an existing directory."""
     models = resolve_models_dir()
     assert models.is_dir()
+
+
+def test_get_host_default():
+    """Host defaults to 127.0.0.1."""
+    os.environ.pop("USECVISLIB_MCP_HOST", None)
+    assert get_host() == "127.0.0.1"
+
+
+def test_get_host_override():
+    """Host can be overridden."""
+    os.environ["USECVISLIB_MCP_HOST"] = "0.0.0.0"
+    assert get_host() == "0.0.0.0"
+    os.environ.pop("USECVISLIB_MCP_HOST", None)
+
+
+def test_get_port_default():
+    """Port defaults to 8000."""
+    os.environ.pop("USECVISLIB_MCP_PORT", None)
+    assert get_port() == 8000
+
+
+def test_get_port_override():
+    """Port can be overridden."""
+    os.environ["USECVISLIB_MCP_PORT"] = "9000"
+    assert get_port() == 9000
+    os.environ.pop("USECVISLIB_MCP_PORT", None)
+
+
+def test_get_api_key_default():
+    """API key defaults to empty string."""
+    os.environ.pop("USECVISLIB_MCP_API_KEY", None)
+    assert get_api_key() == ""
+
+
+def test_get_api_key_override():
+    """API key can be set."""
+    os.environ["USECVISLIB_MCP_API_KEY"] = "my-secret"
+    assert get_api_key() == "my-secret"
+    os.environ.pop("USECVISLIB_MCP_API_KEY", None)
+
+
+def test_output_mode_defaults_to_base64_for_streamable_http():
+    """Output mode defaults to 'base64' for streamable-http transport."""
+    os.environ.pop("USECVISLIB_MCP_OUTPUT_MODE", None)
+    os.environ["USECVISLIB_MCP_TRANSPORT"] = "streamable-http"
+    assert get_output_mode() == "base64"
+    os.environ["USECVISLIB_MCP_TRANSPORT"] = "stdio"
 
 
 def test_ensure_directories(tmp_path):

@@ -14,6 +14,9 @@ DEFAULTS = {
     "USECVISLIB_MCP_TEMP_DIR": "/tmp/usecvislib-mcp-temp",
     "USECVISLIB_MCP_MAX_CONFIG_SIZE": "10485760",
     "USECVISLIB_MCP_DEFAULT_FORMAT": "png",
+    "USECVISLIB_MCP_HOST": "127.0.0.1",
+    "USECVISLIB_MCP_PORT": "8000",
+    "USECVISLIB_MCP_API_KEY": "",
 }
 
 
@@ -30,12 +33,24 @@ def get_transport() -> str:
     return get_env("USECVISLIB_MCP_TRANSPORT")
 
 
+def get_host() -> str:
+    return get_env("USECVISLIB_MCP_HOST")
+
+
+def get_port() -> int:
+    return int(get_env("USECVISLIB_MCP_PORT"))
+
+
+def get_api_key() -> str:
+    return get_env("USECVISLIB_MCP_API_KEY")
+
+
 def get_output_mode() -> str:
     """Get output mode, defaulting based on transport."""
     explicit = os.environ.get("USECVISLIB_MCP_OUTPUT_MODE")
     if explicit:
         return explicit
-    return "base64" if get_transport() == "sse" else "file"
+    return "base64" if get_transport() in ("sse", "streamable-http") else "file"
 
 
 def get_output_dir() -> Path:

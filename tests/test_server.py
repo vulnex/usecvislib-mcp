@@ -10,7 +10,7 @@ def test_server_instance_exists():
 
 
 def test_tools_registered():
-    """All 40 tools are registered on the server."""
+    """All 49 tools are registered on the server."""
     from usecvislib_mcp.server import mcp
 
     tool_names = {t.name for t in mcp._tool_manager.list_tools()}
@@ -40,11 +40,13 @@ def test_tools_registered():
         "analyze_binary_heatmap",
         "analyze_binary_all",
         "get_binary_stats",
-        # Cloud Diagrams (4)
+        # Cloud Diagrams (6)
         "generate_cloud_diagram",
         "validate_cloud_diagram",
         "get_cloud_diagram_stats",
         "search_cloud_icons",
+        "list_cloud_providers",
+        "list_cloud_icons",
         # Privilege Gradient (5)
         "generate_privilege_gradient",
         "validate_privilege_gradient",
@@ -63,19 +65,29 @@ def test_tools_registered():
         "generate_dependency_graph",
         "validate_dependency_graph",
         "get_dependency_graph_stats",
-        # Utilities (3)
+        # Utilities (4)
         "convert_to_mermaid",
         "calculate_cvss_score",
         "detect_config_type",
+        "list_shapes",
+        # Batch (1)
+        "batch_process",
+        # Export (2)
+        "export_data",
+        "generate_report",
+        # Analysis (3)
+        "find_chokepoints",
+        "analyze_centrality",
+        "compare_visualizations",
     }
 
-    assert len(expected_tools) == 40, f"Expected 40 tools, listed {len(expected_tools)}"
+    assert len(expected_tools) == 49, f"Expected 49 tools, listed {len(expected_tools)}"
 
     for tool_name in expected_tools:
         assert tool_name in tool_names, f"Tool '{tool_name}' not registered"
 
-    assert len(tool_names) == 40, (
-        f"Expected 40 registered tools, found {len(tool_names)}. "
+    assert len(tool_names) == 49, (
+        f"Expected 49 registered tools, found {len(tool_names)}. "
         f"Extra: {tool_names - expected_tools}"
     )
 

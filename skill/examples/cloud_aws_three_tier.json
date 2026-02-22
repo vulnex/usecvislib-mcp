@@ -1,0 +1,57 @@
+{
+  "diagram": {
+    "title": "AWS Three-Tier Architecture",
+    "direction": "TB",
+    "outformat": "png"
+  },
+  "nodes": [
+    {"id": "users", "icon": "aws.general.Users", "label": "Users"},
+    {"id": "cf", "icon": "aws.network.CloudFront", "label": "CloudFront CDN"},
+    {"id": "alb", "icon": "aws.network.ELB", "label": "Application LB"},
+    {"id": "web1", "icon": "aws.compute.EC2", "label": "Web Server 1"},
+    {"id": "web2", "icon": "aws.compute.EC2", "label": "Web Server 2"},
+    {"id": "app1", "icon": "aws.compute.Lambda", "label": "App Lambda 1"},
+    {"id": "app2", "icon": "aws.compute.Lambda", "label": "App Lambda 2"},
+    {"id": "rds_primary", "icon": "aws.database.RDS", "label": "RDS Primary"},
+    {"id": "rds_replica", "icon": "aws.database.RDS", "label": "RDS Replica"},
+    {"id": "elasticache", "icon": "aws.database.ElastiCache", "label": "ElastiCache"},
+    {"id": "s3", "icon": "aws.storage.S3", "label": "S3 Assets"}
+  ],
+  "edges": [
+    {"from": "users", "to": "cf", "label": "HTTPS"},
+    {"from": "cf", "to": "alb", "label": "HTTPS"},
+    {"from": "cf", "to": "s3", "label": "Static Assets"},
+    {"from": "alb", "to": "web1", "label": "HTTP"},
+    {"from": "alb", "to": "web2", "label": "HTTP"},
+    {"from": "web1", "to": "app1", "label": "Invoke"},
+    {"from": "web2", "to": "app2", "label": "Invoke"},
+    {"from": "app1", "to": "rds_primary", "label": "SQL"},
+    {"from": "app2", "to": "rds_primary", "label": "SQL"},
+    {"from": "rds_primary", "to": "rds_replica", "label": "Replication"},
+    {"from": "app1", "to": "elasticache", "label": "Cache"},
+    {"from": "app2", "to": "elasticache", "label": "Cache"}
+  ],
+  "clusters": [
+    {
+      "id": "vpc",
+      "label": "VPC",
+      "children": [
+        {
+          "id": "public_subnet",
+          "label": "Public Subnet",
+          "nodes": ["alb", "web1", "web2"]
+        },
+        {
+          "id": "private_subnet",
+          "label": "Private Subnet",
+          "nodes": ["app1", "app2", "elasticache"]
+        },
+        {
+          "id": "data_subnet",
+          "label": "Data Subnet",
+          "nodes": ["rds_primary", "rds_replica"]
+        }
+      ]
+    }
+  ]
+}

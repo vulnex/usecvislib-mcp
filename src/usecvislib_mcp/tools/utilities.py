@@ -6,6 +6,7 @@ import json
 from usecvislib import (
     AttackGraphs,
     AttackTrees,
+    CustomDiagrams,
     ThreatModeling,
     USecVisLibError,
     calculate_cvss_from_vector_unified,
@@ -174,4 +175,30 @@ async def detect_config_type(config: dict) -> str:
             {"type": detected, "confidence": confidence}, indent=2
         )
     except Exception as e:
+        return format_error(e)
+
+
+@mcp.tool()
+async def list_shapes(category: str = "") -> str:
+    """List available shapes for custom diagrams.
+
+    Returns shape definitions from the CustomDiagrams shape gallery,
+    optionally filtered by category.
+
+    Args:
+        category: Filter by shape category (empty for all categories).
+
+    Returns:
+        JSON list of shape information dictionaries.
+    """
+    try:
+
+        def _sync_list():
+            cd = CustomDiagrams()
+            return cd.list_shapes(category=category or None)
+
+        loop = asyncio.get_event_loop()
+        result = await loop.run_in_executor(None, _sync_list)
+        return json.dumps(result, indent=2, default=str)
+    except (USecVisLibError, Exception) as e:
         return format_error(e)
