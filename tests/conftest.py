@@ -191,6 +191,15 @@ def has_mermaid_cli():
     return shutil.which("mmdc") is not None
 
 
+def has_diagrams_pkg():
+    """Check if the 'diagrams' Python package is installed."""
+    try:
+        import diagrams  # noqa: F401
+        return True
+    except ImportError:
+        return False
+
+
 skip_no_graphviz = pytest.mark.skipif(
     not has_graphviz(), reason="Graphviz (dot) not installed"
 )
@@ -198,3 +207,153 @@ skip_no_graphviz = pytest.mark.skipif(
 skip_no_mermaid = pytest.mark.skipif(
     not has_mermaid_cli(), reason="mermaid-cli (mmdc) not installed"
 )
+
+skip_no_diagrams = pytest.mark.skipif(
+    not has_diagrams_pkg() or not has_graphviz(),
+    reason="diagrams package or Graphviz not installed",
+)
+
+
+@pytest.fixture
+def sample_privilege_gradient_config():
+    """Minimal valid privilege gradient config."""
+    return {
+        "gradient": {
+            "name": "Test Privilege Gradient",
+            "description": "Test trust zones",
+        },
+        "zones": {
+            "external": {"label": "External", "level": 0, "color": "#e74c3c"},
+            "dmz": {"label": "DMZ", "level": 1, "color": "#f39c12"},
+            "internal": {"label": "Internal", "level": 2, "color": "#3498db"},
+        },
+        "components": {
+            "cdn": {"label": "CDN", "zone": "external"},
+            "web_app": {"label": "Web App", "zone": "dmz"},
+            "api": {"label": "API Server", "zone": "internal"},
+        },
+        "influences": [
+            {"from": "cdn", "to": "web_app", "label": "HTTPS"},
+            {"from": "web_app", "to": "api", "label": "REST"},
+        ],
+    }
+
+
+@pytest.fixture
+def sample_cloud_diagram_config():
+    """Minimal valid cloud diagram config."""
+    return {
+        "diagram": {
+            "title": "Test Cloud Diagram",
+            "direction": "TB",
+            "outformat": "png",
+        },
+        "nodes": [
+            {"id": "lb", "icon": "aws.network.ELB", "label": "Load Balancer"},
+            {"id": "web", "icon": "aws.compute.EC2", "label": "Web Server"},
+            {"id": "db", "icon": "aws.database.RDS", "label": "Database"},
+        ],
+        "edges": [
+            {"from": "lb", "to": "web", "label": "HTTP"},
+            {"from": "web", "to": "db", "label": "SQL"},
+        ],
+    }
+
+
+@pytest.fixture
+def sample_custom_diagram_config():
+    """Minimal valid custom diagram config."""
+    return {
+        "diagram": {
+            "title": "Test Custom Diagram",
+            "layout": "hierarchical",
+            "direction": "TB",
+        },
+        "schema": {
+            "nodes": {
+                "process": {
+                    "shape": "rectangle",
+                    "required_fields": ["name"],
+                    "style": {"fillcolor": "#3498DB", "fontcolor": "white"},
+                    "label_template": "{name}",
+                },
+            },
+            "edges": {
+                "flow": {
+                    "style": "solid",
+                    "color": "#333333",
+                },
+            },
+        },
+        "nodes": [
+            {"id": "a", "type": "process", "name": "Component A"},
+            {"id": "b", "type": "process", "name": "Component B"},
+            {"id": "c", "type": "process", "name": "Component C"},
+        ],
+        "edges": [
+            {"from": "a", "to": "b", "type": "flow", "label": "calls"},
+            {"from": "b", "to": "c", "type": "flow", "label": "depends"},
+        ],
+    }
+
+
+@pytest.fixture
+def sample_component_diagram_config():
+    """Minimal valid component diagram config."""
+    return {
+        "diagram": {
+            "name": "Test Component Diagram",
+            "description": "Test architecture layers",
+        },
+        "layers": {
+            "presentation": {"label": "Presentation Layer", "order": 1, "color": "#3498db"},
+            "business": {"label": "Business Layer", "order": 2, "color": "#2ecc71"},
+            "data": {"label": "Data Layer", "order": 3, "color": "#e74c3c"},
+        },
+        "components": {
+            "ui": {"label": "Web UI", "layer": "presentation"},
+            "api": {"label": "REST API", "layer": "business"},
+            "db": {"label": "PostgreSQL", "layer": "data"},
+        },
+        "connections": [
+            {"from": "ui", "to": "api", "label": "HTTP"},
+            {"from": "api", "to": "db", "label": "SQL"},
+        ],
+    }
+
+
+@pytest.fixture
+def sample_dependency_graph_config():
+    """Minimal valid dependency graph config."""
+    return {
+        "graph": {
+            "name": "Test Dependency Graph",
+            "description": "Test module dependencies",
+        },
+        "modules": {
+            "core": {"label": "Core", "sloc": 500, "language": "python"},
+            "api": {"label": "API", "sloc": 300, "language": "python"},
+            "utils": {"label": "Utils", "sloc": 100, "language": "python"},
+        },
+        "dependencies": [
+            {"from": "api", "to": "core", "label": "imports", "type": "import"},
+            {"from": "core", "to": "utils", "label": "imports", "type": "import"},
+        ],
+    }
+
+
+@pytest.fixture
+def sample_binary_file(tmp_path):
+    """Create a small binary test fixture (1KB of pseudo-random bytes)."""
+    import hashlib
+
+    # Deterministic pseudo-random bytes using hash chain
+    data = b""
+    seed = b"usecvislib-test-binary"
+    for i in range(64):
+        chunk = hashlib.sha256(seed + i.to_bytes(4, "big")).digest()
+        data += chunk[:16]
+
+    binary_path = tmp_path / "test_binary.bin"
+    binary_path.write_bytes(data)
+    return str(binary_path)

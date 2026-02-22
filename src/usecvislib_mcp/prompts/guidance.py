@@ -193,3 +193,143 @@ a network topology.
 - CVSS scores on vulnerabilities help prioritize the most dangerous paths.
 - Network edges define reachability — only connected hosts can be attacked.
 """
+
+
+@mcp.prompt()
+def analyze_binary() -> str:
+    """Step-by-step guide for binary file triage and analysis."""
+    return """# Binary File Analysis with USecVisLib
+
+## Overview
+BinVis provides visual analysis of binary files — entropy maps, byte distributions,
+and heatmaps — useful for malware triage, firmware analysis, and identifying
+encrypted or compressed regions.
+
+## Step-by-Step Triage Pipeline
+
+1. **Get Stats First**: Use `get_binary_stats` to get file size, entropy, and
+   byte distribution overview without generating images.
+2. **Check Entropy**: Use `analyze_binary_entropy` to visualize entropy across
+   the file. High-entropy regions suggest encryption or compression.
+3. **Check Distribution**: Use `analyze_binary_distribution` to see byte value
+   frequencies. Uniform distribution suggests encryption; spikes suggest structure.
+4. **Visual Patterns**: Use `analyze_binary_heatmap` for a 2D view to spot
+   repeating patterns, headers, or anomalies.
+5. **Full Analysis**: Use `analyze_binary_all` to generate all visualizations at once.
+
+## Available Tools
+- `analyze_binary_entropy` — Entropy visualization across the file
+- `analyze_binary_distribution` — Byte frequency distribution chart
+- `analyze_binary_heatmap` — 2D byte value heatmap
+- `analyze_binary_all` — All visualizations in one call
+- `get_binary_stats` — Statistical summary without visualization
+
+## Tips
+- Start with `get_binary_stats` for a quick overview before generating images.
+- Entropy close to 8.0 bits/byte indicates encrypted or compressed data.
+- Low entropy (< 4.0) with byte spikes suggests plain text or structured data.
+- Compare regions visually to identify packed vs. unpacked sections in executables.
+"""
+
+
+@mcp.prompt()
+def create_privilege_gradient() -> str:
+    """Step-by-step guide for creating a privilege gradient visualization."""
+    return """# Creating a Privilege Gradient Graph with USecVisLib
+
+## Overview
+Privilege gradient graphs visualize trust zone architectures with automatic
+inversion detection. They show how components in different trust zones
+influence each other, highlighting potential security issues.
+
+## Step-by-Step Process
+
+1. **Define Zones**: Create trust zones with privilege levels (higher = more trusted).
+2. **Place Components**: Assign components to their respective trust zones.
+3. **Map Influences**: Define how components influence each other across zones.
+4. **Detect Inversions**: Use `detect_privilege_inversions` to find cases where
+   lower-privilege zones influence higher-privilege zones.
+5. **Analyze Influence**: Use `analyze_zone_influence` to see the full influence matrix.
+6. **Generate**: Use `generate_privilege_gradient` to visualize the architecture.
+
+## Config Structure
+
+```json
+{
+  "gradient": {
+    "name": "Corporate Trust Architecture",
+    "description": "Trust zones for corporate network"
+  },
+  "zones": {
+    "internet": {"label": "Internet", "level": 0, "color": "#e74c3c"},
+    "dmz": {"label": "DMZ", "level": 1, "color": "#f39c12"},
+    "internal": {"label": "Internal", "level": 2, "color": "#3498db"},
+    "restricted": {"label": "Restricted", "level": 3, "color": "#2ecc71"}
+  },
+  "components": {
+    "cdn": {"label": "CDN", "zone": "internet"},
+    "web_app": {"label": "Web App", "zone": "dmz"},
+    "api_server": {"label": "API Server", "zone": "internal"},
+    "database": {"label": "Database", "zone": "restricted"}
+  },
+  "influences": [
+    {"from": "cdn", "to": "web_app", "label": "HTTPS"},
+    {"from": "web_app", "to": "api_server", "label": "REST API"},
+    {"from": "api_server", "to": "database", "label": "SQL"}
+  ]
+}
+```
+
+## Available Tools
+- `generate_privilege_gradient` — Render the gradient graph as an image
+- `validate_privilege_gradient` — Check config for errors
+- `get_privilege_gradient_stats` — Get zone and component counts
+- `detect_privilege_inversions` — Find privilege inversion issues
+- `analyze_zone_influence` — Get cross-zone influence matrix
+
+## Tips
+- Inversions (low zone influencing high zone) are flagged automatically.
+- Use `detect_privilege_inversions` after defining your architecture to find issues.
+- The influence matrix from `analyze_zone_influence` helps identify over-connected zones.
+"""
+
+
+@mcp.prompt()
+def review_cloud_security() -> str:
+    """Step-by-step guide for cloud architecture security review."""
+    return """# Cloud Architecture Security Review with USecVisLib
+
+## Overview
+Use cloud diagrams to visualize and review cloud architecture for security.
+Supports AWS, GCP, Azure, and other providers with native icons.
+
+## Step-by-Step Review Process
+
+1. **Search Icons**: Use `search_cloud_icons` to find the right provider icons
+   for your architecture components.
+2. **Build Config**: Create the diagram config with nodes (services), edges
+   (data flows), and clusters (VPCs, subnets, regions).
+3. **Validate**: Use `validate_cloud_diagram` to check icon paths and references.
+4. **Generate**: Use `generate_cloud_diagram` to produce the architecture diagram.
+5. **Review Stats**: Use `get_cloud_diagram_stats` to see provider distribution
+   and cluster organization.
+
+## Security Review Checklist
+- Are all data flows encrypted? Mark edges with TLS/SSL labels.
+- Are services properly segmented into VPCs/subnets (clusters)?
+- Are there direct paths from public-facing to internal services?
+- Are databases in private subnets with no direct internet access?
+- Are load balancers and WAFs in front of public services?
+
+## Available Tools
+- `generate_cloud_diagram` — Render cloud architecture as an image
+- `validate_cloud_diagram` — Check config for errors
+- `get_cloud_diagram_stats` — Get node/edge/cluster statistics
+- `search_cloud_icons` — Find provider icons by name
+
+## Tips
+- Use `search_cloud_icons` with queries like "database", "compute", "storage".
+- Group related services into clusters to represent VPCs or regions.
+- Edge labels should describe the protocol and whether traffic is encrypted.
+- Use the diagram alongside a threat model for comprehensive security review.
+"""

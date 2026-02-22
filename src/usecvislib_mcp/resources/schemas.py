@@ -238,3 +238,249 @@ def get_threat_model_schema() -> str:
 def get_mermaid_schema() -> str:
     """Parameter schema documentation for Mermaid diagram rendering."""
     return json.dumps(MERMAID_SCHEMA, indent=2)
+
+
+# ── Phase 2 Schemas ─────────────────────────────────────────────────
+
+BINARY_ANALYSIS_SCHEMA = {
+    "description": "Parameter schema for binary file analysis tools",
+    "parameters": {
+        "file_path": {
+            "type": "string",
+            "required": True,
+            "description": "Path to the binary file on disk",
+        },
+        "format": {
+            "type": "string",
+            "default": "png",
+            "values": ["png", "pdf", "svg"],
+        },
+    },
+    "visualization_types": ["entropy", "distribution", "heatmap", "all"],
+}
+
+CLOUD_DIAGRAM_SCHEMA = {
+    "description": "Configuration schema for cloud architecture diagrams",
+    "format": "JSON",
+    "sections": {
+        "config": {
+            "description": "Diagram configuration",
+            "fields": {
+                "title": {"type": "string", "description": "Diagram title"},
+                "direction": {"type": "string", "default": "TB", "values": ["TB", "BT", "LR", "RL"]},
+                "outformat": {"type": "string", "default": "png"},
+            },
+        },
+        "nodes": {
+            "type": "list of objects",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "icon": {"type": "string", "required": True, "description": "Provider icon path (e.g. aws.compute.EC2)"},
+                "label": {"type": "string", "required": True},
+                "cluster_id": {"type": "string", "description": "Optional cluster membership"},
+            },
+        },
+        "edges": {
+            "type": "list of objects",
+            "fields": {
+                "from_id": {"type": "string", "required": True},
+                "to_id": {"type": "string", "required": True},
+                "label": {"type": "string"},
+                "color": {"type": "string"},
+                "style": {"type": "string"},
+            },
+        },
+        "clusters": {
+            "type": "list of objects",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "label": {"type": "string", "required": True},
+                "style": {"type": "string"},
+            },
+        },
+    },
+}
+
+PRIVILEGE_GRADIENT_SCHEMA = {
+    "description": "Configuration schema for privilege gradient graph visualizations",
+    "format": "TOML, JSON, or YAML",
+    "sections": {
+        "gradient": {
+            "description": "Gradient metadata",
+            "fields": {
+                "name": {"type": "string", "required": True},
+                "description": {"type": "string"},
+            },
+        },
+        "zones": {
+            "type": "dict of dicts, keyed by zone ID",
+            "value_fields": {
+                "label": {"type": "string", "required": True},
+                "level": {"type": "integer", "required": True, "description": "Trust level (higher = more privileged)"},
+                "color": {"type": "string"},
+            },
+        },
+        "components": {
+            "type": "dict of dicts, keyed by component ID",
+            "value_fields": {
+                "label": {"type": "string", "required": True},
+                "zone": {"type": "string", "required": True, "description": "Zone this component belongs to"},
+            },
+        },
+        "influences": {
+            "type": "list of objects",
+            "fields": {
+                "from": {"type": "string", "required": True, "description": "Source component ID"},
+                "to": {"type": "string", "required": True, "description": "Target component ID"},
+                "label": {"type": "string"},
+            },
+        },
+    },
+}
+
+CUSTOM_DIAGRAM_SCHEMA = {
+    "description": "Configuration schema for custom diagrams",
+    "format": "TOML, JSON, or YAML",
+    "sections": {
+        "settings": {
+            "description": "Diagram settings",
+            "fields": {
+                "title": {"type": "string"},
+                "description": {"type": "string"},
+                "layout": {"type": "string", "default": "dot"},
+                "direction": {"type": "string", "default": "TB"},
+                "rankdir": {"type": "string", "default": "TB"},
+            },
+        },
+        "schema": {
+            "description": "Schema definition for node/edge types",
+            "fields": {
+                "node_types": {"type": "dict", "description": "Custom node type definitions"},
+                "edge_types": {"type": "dict", "description": "Custom edge type definitions"},
+            },
+        },
+        "nodes": {
+            "type": "list of objects",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "label": {"type": "string", "required": True},
+                "type": {"type": "string", "description": "Node type from schema"},
+            },
+        },
+        "edges": {
+            "type": "list of objects",
+            "fields": {
+                "from": {"type": "string", "required": True},
+                "to": {"type": "string", "required": True},
+                "label": {"type": "string"},
+                "type": {"type": "string"},
+            },
+        },
+    },
+}
+
+COMPONENT_DIAGRAM_SCHEMA = {
+    "description": "Configuration schema for component diagram visualizations",
+    "format": "TOML, JSON, or YAML",
+    "sections": {
+        "diagram": {
+            "description": "Diagram metadata",
+            "fields": {
+                "name": {"type": "string", "required": True},
+                "description": {"type": "string"},
+            },
+        },
+        "layers": {
+            "type": "dict of dicts, keyed by layer ID",
+            "value_fields": {
+                "label": {"type": "string", "required": True},
+                "order": {"type": "integer", "description": "Layer ordering (top to bottom)"},
+                "color": {"type": "string"},
+            },
+        },
+        "components": {
+            "type": "dict of dicts, keyed by component ID",
+            "value_fields": {
+                "label": {"type": "string", "required": True},
+                "layer": {"type": "string", "required": True, "description": "Layer this component belongs to"},
+                "type": {"type": "string"},
+            },
+        },
+        "connections": {
+            "type": "list of objects",
+            "fields": {
+                "from": {"type": "string", "required": True},
+                "to": {"type": "string", "required": True},
+                "label": {"type": "string"},
+                "style": {"type": "string"},
+            },
+        },
+    },
+}
+
+DEPENDENCY_GRAPH_SCHEMA = {
+    "description": "Configuration schema for dependency graph visualizations",
+    "format": "TOML, JSON, or YAML",
+    "sections": {
+        "graph": {
+            "description": "Graph metadata",
+            "fields": {
+                "name": {"type": "string", "required": True},
+                "description": {"type": "string"},
+            },
+        },
+        "modules": {
+            "type": "dict of dicts, keyed by module ID",
+            "value_fields": {
+                "label": {"type": "string", "required": True},
+                "sloc": {"type": "integer", "description": "Source lines of code (affects node size)"},
+                "language": {"type": "string"},
+            },
+        },
+        "dependencies": {
+            "type": "list of objects",
+            "fields": {
+                "from": {"type": "string", "required": True},
+                "to": {"type": "string", "required": True},
+                "label": {"type": "string"},
+                "type": {"type": "string", "values": ["import", "runtime", "build", "test"]},
+            },
+        },
+    },
+}
+
+
+@mcp.resource("usecvislib://schemas/binary-analysis")
+def get_binary_analysis_schema() -> str:
+    """Parameter schema documentation for binary analysis tools."""
+    return json.dumps(BINARY_ANALYSIS_SCHEMA, indent=2)
+
+
+@mcp.resource("usecvislib://schemas/cloud-diagram")
+def get_cloud_diagram_schema() -> str:
+    """Configuration schema documentation for cloud architecture diagrams."""
+    return json.dumps(CLOUD_DIAGRAM_SCHEMA, indent=2)
+
+
+@mcp.resource("usecvislib://schemas/privilege-gradient")
+def get_privilege_gradient_schema() -> str:
+    """Configuration schema documentation for privilege gradient visualizations."""
+    return json.dumps(PRIVILEGE_GRADIENT_SCHEMA, indent=2)
+
+
+@mcp.resource("usecvislib://schemas/custom-diagram")
+def get_custom_diagram_schema() -> str:
+    """Configuration schema documentation for custom diagrams."""
+    return json.dumps(CUSTOM_DIAGRAM_SCHEMA, indent=2)
+
+
+@mcp.resource("usecvislib://schemas/component-diagram")
+def get_component_diagram_schema() -> str:
+    """Configuration schema documentation for component diagram visualizations."""
+    return json.dumps(COMPONENT_DIAGRAM_SCHEMA, indent=2)
+
+
+@mcp.resource("usecvislib://schemas/dependency-graph")
+def get_dependency_graph_schema() -> str:
+    """Configuration schema documentation for dependency graph visualizations."""
+    return json.dumps(DEPENDENCY_GRAPH_SCHEMA, indent=2)

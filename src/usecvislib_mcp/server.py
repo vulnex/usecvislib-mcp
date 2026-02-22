@@ -12,7 +12,9 @@ mcp = FastMCP(
     "usecvislib",
     instructions=(
         "Security visualization server providing attack trees, attack graphs, "
-        "threat models, and mermaid diagram generation via the USecVisLib library."
+        "threat models, mermaid diagrams, binary analysis, cloud diagrams, "
+        "privilege gradient graphs, custom diagrams, component diagrams, "
+        "dependency graphs, and utility tools via the USecVisLib library."
     ),
 )
 
@@ -21,6 +23,12 @@ from .tools import attack_graphs  # noqa: E402, F401
 from .tools import attack_trees  # noqa: E402, F401
 from .tools import mermaid  # noqa: E402, F401
 from .tools import threat_models  # noqa: E402, F401
+from .tools import binary_analysis  # noqa: E402, F401
+from .tools import cloud_diagrams  # noqa: E402, F401
+from .tools import privilege_gradient  # noqa: E402, F401
+from .tools import custom_diagrams  # noqa: E402, F401
+from .tools import architecture  # noqa: E402, F401
+from .tools import utilities  # noqa: E402, F401
 
 # Import resource modules — they register via @mcp.resource()
 from .resources import schemas  # noqa: E402, F401

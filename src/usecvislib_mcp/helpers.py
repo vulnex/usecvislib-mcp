@@ -112,6 +112,61 @@ async def build_and_analyze(
     return json.dumps(result, indent=2, default=str)
 
 
+async def build_pattern_b(
+    viz_class,
+    config: dict,
+    output_prefix: str,
+    fmt: str = "png",
+    build_method: str = "render",
+    **build_kwargs,
+) -> str:
+    """Build a visualization using Pattern B classes (CloudDiagrams, CustomDiagrams).
+
+    1. Creates OutputHandler and unique output path
+    2. Instantiates viz_class(), calls .load_from_string(json.dumps(config), "json")
+    3. Calls the build/render method with output path
+    4. Returns formatted result
+    """
+    handler = OutputHandler()
+    output_path = handler.make_output_path(output_prefix, fmt)
+    output_base = str(Path(output_path).with_suffix(""))
+
+    def _sync_build():
+        viz = viz_class()
+        viz.load_from_string(json.dumps(config), "json")
+        method = getattr(viz, build_method)
+        method(output=output_base, output_format=fmt, **build_kwargs)
+        return output_path
+
+    loop = asyncio.get_event_loop()
+    result_path = await loop.run_in_executor(None, _sync_build)
+    return handler.format_result(result_path, fmt)
+
+
+async def analyze_pattern_b(
+    viz_class,
+    config: dict,
+    analysis_method: str,
+    **method_kwargs,
+) -> str:
+    """Run an analysis method on a Pattern B class (CloudDiagrams, CustomDiagrams).
+
+    1. Instantiates viz_class(), calls .load_from_string(json.dumps(config), "json")
+    2. Calls analysis method
+    3. Returns the analysis result as JSON
+    """
+
+    def _sync_analyze():
+        viz = viz_class()
+        viz.load_from_string(json.dumps(config), "json")
+        method = getattr(viz, analysis_method)
+        return method(**method_kwargs)
+
+    loop = asyncio.get_event_loop()
+    result = await loop.run_in_executor(None, _sync_analyze)
+    return json.dumps(result, indent=2, default=str)
+
+
 def format_error(exception: Exception) -> str:
     """Format an exception into a user-friendly error string."""
     error_type = type(exception).__name__

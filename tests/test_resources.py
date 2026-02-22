@@ -120,3 +120,71 @@ def test_mermaid_schema():
     assert "parameters" in result
     assert "source" in result["parameters"]
     assert "supported_diagram_types" in result
+
+
+def test_binary_analysis_schema():
+    """Binary analysis schema resource returns valid JSON."""
+    from usecvislib_mcp.resources.schemas import get_binary_analysis_schema
+
+    result = json.loads(get_binary_analysis_schema())
+    assert "description" in result
+    assert "parameters" in result
+    assert "file_path" in result["parameters"]
+    assert "visualization_types" in result
+
+
+def test_cloud_diagram_schema():
+    """Cloud diagram schema resource returns valid JSON."""
+    from usecvislib_mcp.resources.schemas import get_cloud_diagram_schema
+
+    result = json.loads(get_cloud_diagram_schema())
+    assert "description" in result
+    assert "sections" in result
+    assert "nodes" in result["sections"]
+    assert "edges" in result["sections"]
+
+
+def test_privilege_gradient_schema():
+    """Privilege gradient schema resource returns valid JSON."""
+    from usecvislib_mcp.resources.schemas import get_privilege_gradient_schema
+
+    result = json.loads(get_privilege_gradient_schema())
+    assert "description" in result
+    assert "sections" in result
+    assert "zones" in result["sections"]
+    assert "components" in result["sections"]
+    assert "influences" in result["sections"]
+
+
+def test_custom_diagram_schema():
+    """Custom diagram schema resource returns valid JSON."""
+    from usecvislib_mcp.resources.schemas import get_custom_diagram_schema
+
+    result = json.loads(get_custom_diagram_schema())
+    assert "description" in result
+    assert "sections" in result
+    assert "nodes" in result["sections"]
+    assert "edges" in result["sections"]
+
+
+def test_component_diagram_schema():
+    """Component diagram schema resource returns valid JSON."""
+    from usecvislib_mcp.resources.schemas import get_component_diagram_schema
+
+    result = json.loads(get_component_diagram_schema())
+    assert "description" in result
+    assert "sections" in result
+    assert "layers" in result["sections"]
+    assert "components" in result["sections"]
+    assert "connections" in result["sections"]
+
+
+def test_dependency_graph_schema():
+    """Dependency graph schema resource returns valid JSON."""
+    from usecvislib_mcp.resources.schemas import get_dependency_graph_schema
+
+    result = json.loads(get_dependency_graph_schema())
+    assert "description" in result
+    assert "sections" in result
+    assert "modules" in result["sections"]
+    assert "dependencies" in result["sections"]
