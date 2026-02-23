@@ -273,6 +273,25 @@ Add to your MCP settings (`claude_desktop_config.json` or `.claude/settings.json
 | `create_privilege_gradient` | Guide for privilege gradient creation |
 | `review_cloud_security` | Guide for cloud architecture security review |
 
+## Companion Skill
+
+The **[USecVisLib Skill](https://github.com/vulnex/skill/usecvislib)** is a domain knowledge prompt that teaches AI assistants how to effectively use the MCP tools for security assessments. While the MCP server provides the tools, the Skill provides the expertise.
+
+| Layer | Role |
+|-------|------|
+| **MCP Server** (this package) | Provides tools (actions) and resources (data) — the "hands" |
+| **Skill** | Provides domain expertise and workflow guidance — the "brain" |
+
+The Skill includes:
+- **Visualization selection guide** — maps security questions to the right tool
+- **Configuration best practices** — per-type guidance for all 10 visualization modules
+- **Workflow orchestration** — multi-step workflows (security assessment, binary triage, cloud review, attack surface mapping)
+- **Style recommendations** — matched to audience (executive, pentest, academic, etc.)
+
+**Using both together** delivers the best results: the Skill guides tool selection and configuration strategy, then the MCP server executes the visualizations.
+
+**Using the MCP server alone** also works — AI assistants can rely on tool descriptions and the 6 built-in prompt templates for guidance. This is suitable for non-Claude clients, automated pipelines, or developers who prefer explicit tool invocation.
+
 ## Development
 
 ```bash
