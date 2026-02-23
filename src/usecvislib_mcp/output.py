@@ -19,7 +19,7 @@ class OutputHandler:
         """Generate a unique output file path."""
         output_dir = get_output_dir()
         output_dir.mkdir(parents=True, exist_ok=True)
-        unique = uuid.uuid4().hex[:12]
+        unique = uuid.uuid4().hex
         filename = f"{prefix}_{unique}.{fmt}"
         return str(output_dir / filename)
 

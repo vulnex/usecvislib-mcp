@@ -3,6 +3,8 @@
 import logging
 import os
 import sys
+import time
+from collections import defaultdict
 from pathlib import Path
 
 
@@ -182,7 +184,57 @@ def validate_input_path(file_path: str) -> Path:
     return resolved
 
 
+def get_rate_limit() -> int:
+    """Get max tool calls per minute. 0 = unlimited."""
+    return int(os.environ.get("USECVISLIB_MCP_RATE_LIMIT", "60"))
+
+
+class RateLimiter:
+    """Simple in-memory per-tool rate limiter using a sliding window."""
+
+    def __init__(self, max_calls_per_minute: int = 60):
+        self.max_calls = max_calls_per_minute
+        self._calls: dict[str, list[float]] = defaultdict(list)
+
+    def check(self, tool_name: str) -> None:
+        """Check if the call is allowed. Raises ValueError if rate exceeded."""
+        if self.max_calls <= 0:
+            return  # Unlimited
+
+        now = time.time()
+        window_start = now - 60.0
+
+        # Clean old entries
+        calls = self._calls[tool_name]
+        self._calls[tool_name] = [t for t in calls if t > window_start]
+
+        if len(self._calls[tool_name]) >= self.max_calls:
+            raise ValueError(
+                f"Rate limit exceeded for '{tool_name}': "
+                f"max {self.max_calls} calls/minute"
+            )
+
+        self._calls[tool_name].append(now)
+
+
+# Global rate limiter instance (initialized lazily)
+_rate_limiter: RateLimiter | None = None
+
+
+def get_rate_limiter() -> RateLimiter:
+    """Get or create the global rate limiter."""
+    global _rate_limiter
+    if _rate_limiter is None:
+        _rate_limiter = RateLimiter(max_calls_per_minute=get_rate_limit())
+    return _rate_limiter
+
+
 def ensure_directories() -> None:
-    """Create output and temp directories if they don't exist."""
-    get_output_dir().mkdir(parents=True, exist_ok=True)
-    get_temp_dir().mkdir(parents=True, exist_ok=True)
+    """Create output and temp directories with restrictive permissions."""
+    for d in (get_output_dir(), get_temp_dir()):
+        d.mkdir(parents=True, exist_ok=True)
+        # Set restrictive permissions (owner-only) to protect sensitive configs
+        try:
+            d.chmod(0o700)
+        except OSError:
+            pass  # Best-effort on platforms that don't support chmod

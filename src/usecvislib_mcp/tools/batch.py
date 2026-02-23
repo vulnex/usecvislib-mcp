@@ -11,6 +11,10 @@ from ..helpers import format_error
 from ..server import mcp
 
 
+MAX_BATCH_CONFIGS = 100
+MAX_BATCH_WORKERS = 8
+
+
 @mcp.tool()
 async def batch_process(
     module_type: str,
@@ -28,15 +32,20 @@ async def batch_process(
         module_type: Visualization type — 'attack_tree', 'attack_graph',
                      'threat_model', 'privilege_gradient', 'component_diagram',
                      or 'dependency_graph'.
-        configs: List of configuration dictionaries to process.
+        configs: List of configuration dictionaries to process (max 100).
         format: Output format — png, pdf, svg, or dot.
         style: Style ID to apply (empty string for default).
-        max_workers: Maximum parallel workers.
+        max_workers: Maximum parallel workers (max 8).
 
     Returns:
         JSON with summary (success/failure counts) and individual results.
     """
     try:
+        if len(configs) > MAX_BATCH_CONFIGS:
+            return format_error(ValueError(
+                f"Batch size ({len(configs)}) exceeds maximum ({MAX_BATCH_CONFIGS})"
+            ))
+        max_workers = min(max_workers, MAX_BATCH_WORKERS)
 
         def _sync_batch():
             temp_dir = get_temp_dir()
@@ -44,7 +53,7 @@ async def batch_process(
             output_dir = get_output_dir()
             output_dir.mkdir(parents=True, exist_ok=True)
 
-            batch_id = uuid.uuid4().hex[:8]
+            batch_id = uuid.uuid4().hex
             temp_files = []
             try:
                 # Write each config to a temp file

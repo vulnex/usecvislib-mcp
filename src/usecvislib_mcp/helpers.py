@@ -10,7 +10,7 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
-from .config import get_max_config_size, get_temp_dir
+from .config import get_max_config_size, get_rate_limiter, get_temp_dir
 from .output import OutputHandler
 
 logger = logging.getLogger("usecvislib_mcp")
@@ -41,6 +41,14 @@ def temp_config_file(config: dict, suffix: str = ".json"):
 
     Yields the path to the temporary config file.
     """
+    # Pre-serialization size estimate (fast reject before expensive json.dumps)
+    estimated = len(str(config))
+    if estimated > get_max_config_size():
+        raise ValueError(
+            f"Config estimated size ({estimated} bytes) exceeds maximum "
+            f"({get_max_config_size()} bytes)"
+        )
+
     content = json.dumps(config, indent=2)
 
     if len(content) > get_max_config_size():
@@ -73,11 +81,13 @@ async def build_visualization(
 ) -> str:
     """Build a visualization using Pattern A classes (AttackTrees, AttackGraphs, etc.).
 
-    1. Creates temp config file from dict
-    2. Creates unique output path
-    3. Runs viz_class(inputfile, outputfile, format, styleid).build() in executor
-    4. Returns formatted result via OutputHandler
+    1. Checks rate limit
+    2. Creates temp config file from dict
+    3. Creates unique output path
+    4. Runs viz_class(inputfile, outputfile, format, styleid).build() in executor
+    5. Returns formatted result via OutputHandler
     """
+    get_rate_limiter().check(output_prefix)
     handler = OutputHandler()
     output_path = handler.make_output_path(output_prefix, fmt)
     # Output path for graphviz: strip extension, the library adds it
@@ -113,6 +123,7 @@ async def build_and_analyze(
     2. Calls viz.load() then getattr(viz, analysis_method)(**kwargs)
     3. Returns the analysis result as JSON
     """
+    get_rate_limiter().check(analysis_method)
 
     if analysis_method not in ALLOWED_ANALYSIS_METHODS:
         raise ValueError(f"Method '{analysis_method}' is not allowed. "
@@ -150,6 +161,7 @@ async def build_pattern_b(
     3. Calls the build/render method with output path
     4. Returns formatted result
     """
+    get_rate_limiter().check(output_prefix)
     handler = OutputHandler()
     output_path = handler.make_output_path(output_prefix, fmt)
     output_base = str(Path(output_path).with_suffix(""))
@@ -182,6 +194,7 @@ async def analyze_pattern_b(
     2. Calls analysis method
     3. Returns the analysis result as JSON
     """
+    get_rate_limiter().check(analysis_method)
 
     if analysis_method not in ALLOWED_ANALYSIS_METHODS:
         raise ValueError(f"Method '{analysis_method}' is not allowed. "
@@ -198,18 +211,37 @@ async def analyze_pattern_b(
     return json.dumps(result, indent=2, default=str)
 
 
-def format_error(exception: Exception) -> str:
-    """Format an exception into a user-friendly error string."""
-    error_type = type(exception).__name__
-    message = str(exception)
+def _sanitize_error_message(message: str) -> str:
+    """Strip internal file paths and sensitive details from error messages."""
+    import re
+    # Strip absolute file paths (Unix and Windows patterns)
+    sanitized = re.sub(r'(/[\w./-]+/)([\w.-]+)', r'\2', message)
+    sanitized = re.sub(r'([A-Z]:\\[\w.\\-]+\\)([\w.-]+)', r'\2', sanitized)
+    # Strip Python traceback references
+    sanitized = re.sub(r'File "[^"]+", line \d+', 'File "<internal>"', sanitized)
+    return sanitized
 
-    # Include context from USecVisLibError subclasses
+
+def format_error(exception: Exception) -> str:
+    """Format an exception into a user-friendly error string.
+
+    Sanitizes internal paths and sensitive details before returning.
+    """
+    error_type = type(exception).__name__
+    message = _sanitize_error_message(str(exception))
+
+    # Include context from USecVisLibError subclasses, sanitized
     context = {}
     if hasattr(exception, "context"):
-        context = exception.context
+        raw_ctx = exception.context
+        if isinstance(raw_ctx, dict):
+            context = {
+                k: _sanitize_error_message(str(v)) if isinstance(v, str) else v
+                for k, v in raw_ctx.items()
+            }
     elif hasattr(exception, "__dict__"):
         context = {
-            k: v
+            k: _sanitize_error_message(str(v)) if isinstance(v, str) else v
             for k, v in exception.__dict__.items()
             if not k.startswith("_") and k != "args"
         }

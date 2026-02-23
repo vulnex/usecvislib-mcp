@@ -135,6 +135,7 @@ Add to your MCP settings (`claude_desktop_config.json` or `.claude/settings.json
 | `USECVISLIB_MCP_DEFAULT_FORMAT` | `png` | Default image format |
 | `USECVISLIB_MCP_MAX_CONFIG_SIZE` | `10485760` | Max config size in bytes (10 MB) |
 | `USECVISLIB_MCP_ALLOWED_INPUT_DIRS` | *(empty)* | Comma-separated allowed dirs for binary file access (unrestricted when empty) |
+| `USECVISLIB_MCP_RATE_LIMIT` | `60` | Max tool calls per minute per tool (0 = unlimited) |
 
 ## Tools (49)
 
