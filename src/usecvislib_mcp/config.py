@@ -127,6 +127,61 @@ def resolve_models_dir() -> Path:
     return Path("models")
 
 
+def get_allowed_input_dirs() -> list[Path]:
+    """Get list of directories from which input files may be read.
+
+    Set via USECVISLIB_MCP_ALLOWED_INPUT_DIRS (comma-separated paths).
+    When empty, input path validation is skipped (unrestricted local mode).
+    For HTTP deployments, operators SHOULD set this to restrict file access.
+    """
+    raw = os.environ.get("USECVISLIB_MCP_ALLOWED_INPUT_DIRS", "")
+    if not raw.strip():
+        return []
+    return [Path(d.strip()).resolve() for d in raw.split(",") if d.strip()]
+
+
+def validate_input_path(file_path: str) -> Path:
+    """Validate and resolve an input file path.
+
+    Prevents path traversal attacks by:
+    - Rejecting null bytes
+    - Resolving to a real absolute path (follows symlinks)
+    - Checking the file exists and is a regular file
+    - Enforcing allowed directory restrictions when configured
+
+    Args:
+        file_path: User-provided file path to validate.
+
+    Returns:
+        Resolved Path object.
+
+    Raises:
+        ValueError: If the path is invalid or outside allowed directories.
+    """
+    if "\x00" in file_path:
+        raise ValueError("Invalid file path: null bytes not allowed")
+
+    resolved = Path(file_path).resolve()
+
+    if not resolved.exists():
+        raise ValueError(f"File not found: {resolved}")
+
+    if not resolved.is_file():
+        raise ValueError(f"Not a regular file: {resolved}")
+
+    allowed_dirs = get_allowed_input_dirs()
+    if allowed_dirs:
+        if not any(
+            resolved == d or str(resolved).startswith(str(d) + os.sep)
+            for d in allowed_dirs
+        ):
+            raise ValueError(
+                f"Access denied: {resolved} is outside allowed input directories"
+            )
+
+    return resolved
+
+
 def ensure_directories() -> None:
     """Create output and temp directories if they don't exist."""
     get_output_dir().mkdir(parents=True, exist_ok=True)

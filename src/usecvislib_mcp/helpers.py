@@ -15,6 +15,25 @@ from .output import OutputHandler
 
 logger = logging.getLogger("usecvislib_mcp")
 
+# Whitelist of methods allowed via dynamic dispatch (getattr)
+# Prevents reflection attacks where arbitrary methods could be invoked
+ALLOWED_ANALYSIS_METHODS = frozenset({
+    "validate",
+    "get_stats",
+    "analyze_stride",
+    "detect_inversions",
+    "analyze_zone_influence",
+    "find_paths",
+    "analyze_critical_nodes",
+    "find_chokepoints",
+    "betweenness_centrality",
+})
+
+ALLOWED_BUILD_METHODS = frozenset({
+    "render",
+    "build",
+})
+
 
 @contextmanager
 def temp_config_file(config: dict, suffix: str = ".json"):
@@ -95,6 +114,10 @@ async def build_and_analyze(
     3. Returns the analysis result as JSON
     """
 
+    if analysis_method not in ALLOWED_ANALYSIS_METHODS:
+        raise ValueError(f"Method '{analysis_method}' is not allowed. "
+                         f"Allowed: {', '.join(sorted(ALLOWED_ANALYSIS_METHODS))}")
+
     def _sync_analyze():
         with temp_config_file(config) as config_path:
             viz = viz_class(
@@ -131,6 +154,10 @@ async def build_pattern_b(
     output_path = handler.make_output_path(output_prefix, fmt)
     output_base = str(Path(output_path).with_suffix(""))
 
+    if build_method not in ALLOWED_BUILD_METHODS:
+        raise ValueError(f"Build method '{build_method}' is not allowed. "
+                         f"Allowed: {', '.join(sorted(ALLOWED_BUILD_METHODS))}")
+
     def _sync_build():
         viz = viz_class()
         viz.load_from_string(json.dumps(config), "json")
@@ -155,6 +182,10 @@ async def analyze_pattern_b(
     2. Calls analysis method
     3. Returns the analysis result as JSON
     """
+
+    if analysis_method not in ALLOWED_ANALYSIS_METHODS:
+        raise ValueError(f"Method '{analysis_method}' is not allowed. "
+                         f"Allowed: {', '.join(sorted(ALLOWED_ANALYSIS_METHODS))}")
 
     def _sync_analyze():
         viz = viz_class()
