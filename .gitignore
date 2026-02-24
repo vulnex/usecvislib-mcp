@@ -6,3 +6,7 @@ dist/
 build/
 *.egg
 .pytest_cache/
+
+# Claude Code
+.claude/
+.mcp.json
