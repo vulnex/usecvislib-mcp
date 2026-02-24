@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "usecvislib": {
+      "command": "usecvislib-mcp"
+    }
+  }
+}

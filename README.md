@@ -1,46 +1,251 @@
 # usecvislib-mcp
 
-MCP (Model Context Protocol) server for the [USecVisLib](https://github.com/user/usecvislib) security visualization library.
+MCP (Model Context Protocol) server for the [USecVisLib](https://github.com/vulnex/usecvislib) security visualization library.
 
 Provides 49 tools, 15 resources, and 6 prompt templates that give AI assistants full access to security visualization capabilities — attack trees, attack graphs, threat models, cloud diagrams, binary analysis, privilege gradients, and more.
 
+## Table of Contents
+
+- [Installation](#installation)
+  - [Option A: Docker (recommended)](#option-a-docker-recommended)
+  - [Option B: Local Installation](#option-b-local-installation)
+- [Client Setup](#client-setup)
+  - [Claude Code / Cursor (stdio — local)](#claude-code--cursor-stdio--local)
+  - [Claude Code / Cursor (HTTP — Docker)](#claude-code--cursor-http--docker)
+  - [Claude Desktop (stdio)](#claude-desktop-stdio)
+  - [Claude Desktop (HTTP)](#claude-desktop-http)
+- [Transport Options](#transport-options)
+- [Authentication](#authentication)
+- [Configuration Reference](#configuration-reference)
+- [Tools (49)](#tools-49)
+- [Resources (15)](#resources-15)
+- [Prompts (6)](#prompts-6)
+- [Companion Skill](#companion-skill)
+- [Development](#development)
+- [License](#license)
+
 ## Installation
 
+### Option A: Docker (recommended)
+
+Docker provides a fully self-contained environment with all system dependencies pre-installed. No need to install Graphviz, mermaid-cli, or any other system packages.
+
+#### Using docker-compose (from the usecvislib parent project)
+
 ```bash
-pip install -e .          # from this directory
-# or
+# Clone the parent project
+git clone --recursive https://github.com/vulnex/usecvislib.git
+cd usecvislib
+
+# Clone the MCP server alongside it
+git clone https://github.com/vulnex/usecvislib-mcp.git ../usecvislib-mcp
+
+# Generate an API key and save it
+echo "USECVISLIB_MCP_API_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')" >> .env
+
+# Start the MCP server (builds the base image first, then the MCP layer)
+docker-compose up -d usecvislib-mcp
+
+# Verify it's running
+curl http://localhost:8002/health
+# {"status": "ok"}
+```
+
+The MCP server will be available at `http://localhost:8002/mcp`.
+
+#### Standalone Docker
+
+```bash
+# Build the base image first (from usecvislib directory)
+cd /path/to/usecvislib
+docker build -t usecvislib-usecvislib-api:latest .
+
+# Build the MCP image
+cd /path/to/usecvislib-mcp
+docker build -t usecvislib-mcp .
+
+# Run
+docker run -p 8001:8000 \
+  -e USECVISLIB_MCP_TRANSPORT=streamable-http \
+  -e USECVISLIB_MCP_HOST=0.0.0.0 \
+  -e USECVISLIB_MCP_API_KEY=my-secret-key \
+  usecvislib-mcp
+```
+
+#### Health Check
+
+```bash
+curl http://localhost:8001/health
+# {"status": "ok"}
+```
+
+### Option B: Local Installation
+
+Local installation requires system dependencies to be installed separately.
+
+#### 1. System Requirements
+
+| Dependency | Required | Purpose |
+|-----------|----------|---------|
+| **Python 3.10+** | Yes | Runtime |
+| **Graphviz** | Yes | All diagram rendering (attack trees, attack graphs, threat models, etc.) |
+| **mermaid-cli** (mmdc) | Optional | Mermaid diagram rendering |
+| **diagrams** Python package | Optional | Cloud architecture diagrams |
+| **pytm** Python package | Optional | PyTM threat model engine |
+
+#### 2. Install Graphviz
+
+```bash
+# macOS
+brew install graphviz
+
+# Ubuntu / Debian
+sudo apt-get install graphviz
+
+# Fedora / RHEL
+sudo dnf install graphviz
+
+# Windows
+choco install graphviz
+```
+
+Verify: `dot -V` should print the version.
+
+#### 3. Install mermaid-cli (optional — for Mermaid diagrams)
+
+```bash
+npm install -g @mermaid-js/mermaid-cli
+```
+
+Verify: `mmdc --version` should print the version.
+
+> **Note**: mermaid-cli requires Node.js 18+. If you only need attack trees, attack graphs, and threat models, you can skip this.
+
+#### 4. Install the MCP server
+
+```bash
+# Install usecvislib first (if not already installed)
+cd /path/to/usecvislib
+pip install -e .
+
+# Install the MCP server
+cd /path/to/usecvislib-mcp
+pip install -e .
+```
+
+Or install from PyPI (when published):
+
+```bash
 pip install usecvislib-mcp
 ```
 
-Requires `usecvislib >= 0.3.4` and system dependencies (Graphviz, mermaid-cli, diagrams) — see the main USecVisLib README.
-
-## Quick Start
-
-### stdio (local)
+#### 5. Verify the installation
 
 ```bash
+# Should start and wait for stdio input (Ctrl+C to exit)
 usecvislib-mcp
 ```
 
-### HTTP (remote / Docker)
+#### 6. Install optional Python packages
 
 ```bash
-USECVISLIB_MCP_TRANSPORT=streamable-http \
-USECVISLIB_MCP_HOST=0.0.0.0 \
-USECVISLIB_MCP_PORT=8000 \
-USECVISLIB_MCP_API_KEY=my-secret-key \
-  usecvislib-mcp
+# Cloud architecture diagrams (AWS, GCP, Azure icons)
+pip install diagrams
+
+# PyTM threat model engine
+pip install pytm
+```
+
+## Client Setup
+
+A `.mcp.json` file is included in this repository for immediate use with Claude Code. If you open this project directory in Claude Code, the MCP server will be auto-discovered and connected via stdio.
+
+### Claude Code / Cursor (stdio — local)
+
+For local use after `pip install`, add to your project's `.mcp.json` or `~/.claude/settings.json`:
+
+```json
+{
+  "mcpServers": {
+    "usecvislib": {
+      "command": "usecvislib-mcp"
+    }
+  }
+}
+```
+
+This runs the server as a subprocess using stdio transport. No network, no authentication — simplest setup.
+
+### Claude Code / Cursor (HTTP — Docker)
+
+When running via Docker, connect over HTTP:
+
+```json
+{
+  "mcpServers": {
+    "usecvislib": {
+      "type": "http",
+      "url": "http://localhost:8002/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-api-key>"
+      }
+    }
+  }
+}
+```
+
+Replace `<your-api-key>` with the value of `USECVISLIB_MCP_API_KEY` from your `.env` file. Adjust the port if using standalone Docker (default `8001`).
+
+### Claude Desktop (stdio)
+
+Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_desktop_config.json` on macOS):
+
+```json
+{
+  "mcpServers": {
+    "usecvislib": {
+      "command": "usecvislib-mcp"
+    }
+  }
+}
+```
+
+> **Tip**: If `usecvislib-mcp` is installed in a virtualenv, use the full path:
+> ```json
+> {
+>   "command": "/path/to/venv/bin/usecvislib-mcp"
+> }
+> ```
+
+### Claude Desktop (HTTP)
+
+```json
+{
+  "mcpServers": {
+    "usecvislib": {
+      "type": "streamable-http",
+      "url": "http://localhost:8002/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-api-key>"
+      }
+    }
+  }
+}
 ```
 
 ## Transport Options
 
-| Transport | Use Case | Output Mode |
-|-----------|----------|-------------|
-| `stdio` (default) | Local CLI clients | `file` — paths on disk |
-| `sse` | Legacy HTTP streaming | `base64` — inline data |
-| `streamable-http` | Production HTTP | `base64` — inline data |
+| Transport | Use Case | Output Mode | Network |
+|-----------|----------|-------------|---------|
+| `stdio` (default) | Local CLI clients | `file` — paths on disk | No |
+| `sse` | Legacy HTTP streaming | `base64` — inline data | Yes |
+| `streamable-http` | Production HTTP | `base64` — inline data | Yes |
 
-Set via `USECVISLIB_MCP_TRANSPORT`.
+Set via `USECVISLIB_MCP_TRANSPORT` environment variable.
+
+**Stdio** is the default for local use — the client launches the server as a subprocess and communicates over stdin/stdout. No network exposure, no authentication needed.
+
+**HTTP transports** (`sse`, `streamable-http`) are for Docker deployments and remote access. They require `USECVISLIB_MCP_HOST=0.0.0.0` to bind to all interfaces and support API key authentication.
 
 ## Authentication
 
@@ -53,72 +258,6 @@ Authorization: Bearer <api-key>
 The `/health` endpoint is always unauthenticated.
 
 Auth is ignored in `stdio` mode (local pipe — no network exposure).
-
-## Docker Deployment
-
-### With docker-compose (recommended)
-
-From the `usecvislib/` directory:
-
-```bash
-# Set API key in .env
-echo "USECVISLIB_MCP_API_KEY=$(python3 -c 'import secrets; print(secrets.token_urlsafe(32))')" >> .env
-
-# Start all services
-docker-compose up -d usecvislib-mcp
-```
-
-The MCP server will be available at `http://localhost:8001/mcp`.
-
-### Standalone Docker
-
-```bash
-docker build -t usecvislib-mcp .
-docker run -p 8001:8000 \
-  -e USECVISLIB_MCP_TRANSPORT=streamable-http \
-  -e USECVISLIB_MCP_HOST=0.0.0.0 \
-  -e USECVISLIB_MCP_API_KEY=my-secret-key \
-  usecvislib-mcp
-```
-
-### Health Check
-
-```bash
-curl http://localhost:8001/health
-# {"status": "ok"}
-```
-
-## Client Setup
-
-### Claude Desktop / Claude Code (stdio)
-
-Add to your MCP settings (`claude_desktop_config.json` or `.claude/settings.json`):
-
-```json
-{
-  "mcpServers": {
-    "usecvislib": {
-      "command": "usecvislib-mcp"
-    }
-  }
-}
-```
-
-### Claude Code / Cursor (HTTP — remote or Docker)
-
-```json
-{
-  "mcpServers": {
-    "usecvislib": {
-      "type": "streamable-http",
-      "url": "http://localhost:8001/mcp",
-      "headers": {
-        "Authorization": "Bearer <your-api-key>"
-      }
-    }
-  }
-}
-```
 
 ## Configuration Reference
 
@@ -304,7 +443,7 @@ pip install -e ".[dev]"
 docker build -f Dockerfile.test -t usecvislib-mcp-test ..
 docker run --rm --tmpfs /tmp:size=512m usecvislib-mcp-test
 
-# Run a subset locally
+# Run a subset locally (no Graphviz needed)
 pytest tests/test_auth.py tests/test_config.py -v
 ```
 
