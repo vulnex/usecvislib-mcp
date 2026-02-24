@@ -53,6 +53,24 @@ curl http://localhost:8002/health
 
 The MCP server will be available at `http://localhost:8002/mcp`.
 
+Then add a `.mcp.json` in your `usecvislib/` directory so Claude Code connects to the Docker container:
+
+```json
+{
+  "mcpServers": {
+    "usecvislib": {
+      "type": "http",
+      "url": "http://localhost:8002/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-api-key>"
+      }
+    }
+  }
+}
+```
+
+Replace `<your-api-key>` with the key generated in the `.env` file.
+
 #### Standalone Docker
 
 ```bash
@@ -70,6 +88,22 @@ docker run -p 8001:8000 \
   -e USECVISLIB_MCP_HOST=0.0.0.0 \
   -e USECVISLIB_MCP_API_KEY=my-secret-key \
   usecvislib-mcp
+```
+
+Then configure your client with the standalone port (`8001`):
+
+```json
+{
+  "mcpServers": {
+    "usecvislib": {
+      "type": "http",
+      "url": "http://localhost:8001/mcp",
+      "headers": {
+        "Authorization": "Bearer my-secret-key"
+      }
+    }
+  }
+}
 ```
 
 #### Health Check
