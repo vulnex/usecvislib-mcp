@@ -5,6 +5,7 @@ import json
 import os
 import uuid
 from pathlib import Path
+from typing import Any
 
 from .config import get_output_dir, get_output_mode
 
@@ -25,7 +26,7 @@ class OutputHandler:
 
     def format_result(
         self, output_path: str, fmt: str, metadata: dict | None = None
-    ) -> dict | object:
+    ) -> Any:
         """Format a visualization result for MCP response.
 
         In file mode: returns JSON with path info.
@@ -47,16 +48,16 @@ class OutputHandler:
         if not path.exists():
             return json.dumps({"error": f"Output file not found: {output_path}"})
 
-        data = path.read_bytes()
-        data_b64 = base64.b64encode(data).decode("ascii")
-
         if fmt in ("png", "svg"):
             try:
                 from mcp.server.fastmcp import Image
 
-                return Image(data=data_b64, format=fmt)
+                return Image(path=path, format=fmt)
             except ImportError:
                 pass
+
+        data = path.read_bytes()
+        data_b64 = base64.b64encode(data).decode("ascii")
 
         return json.dumps(
             {

@@ -13,7 +13,7 @@ async def generate_privilege_gradient(
     config: dict,
     format: str = "png",
     style: str = "pg_default",
-) -> str:
+):
     """Generate a privilege gradient graph from a configuration dictionary.
 
     Visualizes trust zones, components, and influence relationships with

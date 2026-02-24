@@ -15,7 +15,7 @@ async def generate_attack_tree(
     config: dict,
     format: str = "png",
     style: str = "at_default",
-) -> str:
+):
     """Generate an attack tree visualization from a configuration dictionary.
 
     The config should contain 'tree', 'nodes', and 'edges' sections following
@@ -81,7 +81,7 @@ async def build_attack_tree_from_spec(
     edges: list[dict],
     format: str = "png",
     style: str = "at_default",
-) -> str:
+):
     """Build an attack tree from a structured specification using the builder API.
 
     Instead of providing a full config dict, specify the tree components directly.

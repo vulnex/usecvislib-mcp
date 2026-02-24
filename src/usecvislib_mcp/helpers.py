@@ -9,6 +9,7 @@ import logging
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Any
 
 from .config import get_max_config_size, get_rate_limiter, get_temp_dir
 from .output import OutputHandler
@@ -78,7 +79,7 @@ async def build_visualization(
     fmt: str = "png",
     styleid: str = "",
     **viz_kwargs,
-) -> str:
+) -> Any:
     """Build a visualization using Pattern A classes (AttackTrees, AttackGraphs, etc.).
 
     1. Checks rate limit
@@ -153,7 +154,7 @@ async def build_pattern_b(
     fmt: str = "png",
     build_method: str = "render",
     **build_kwargs,
-) -> str:
+) -> Any:
     """Build a visualization using Pattern B classes (CloudDiagrams, CustomDiagrams).
 
     1. Creates OutputHandler and unique output path

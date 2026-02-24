@@ -14,7 +14,7 @@ from ..server import mcp
 async def generate_cloud_diagram(
     config: dict,
     format: str = "png",
-) -> str:
+):
     """Generate a cloud architecture diagram from a configuration dictionary.
 
     The config should define nodes (with cloud provider icons), edges,

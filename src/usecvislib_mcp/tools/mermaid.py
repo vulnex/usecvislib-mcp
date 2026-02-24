@@ -17,7 +17,7 @@ async def render_mermaid(
     background: str = "white",
     width: int = 800,
     height: int = 600,
-) -> str:
+):
     """Render a Mermaid diagram from source text.
 
     Supports all Mermaid diagram types: flowchart, sequence, class, ER,

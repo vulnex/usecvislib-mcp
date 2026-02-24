@@ -13,7 +13,7 @@ async def generate_custom_diagram(
     config: dict,
     format: str = "png",
     style: str = "cd_default",
-) -> str:
+):
     """Generate a custom diagram from a configuration dictionary.
 
     Creates flexible, schema-driven diagrams using Graphviz. The config

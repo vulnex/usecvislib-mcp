@@ -16,7 +16,7 @@ async def generate_component_diagram(
     config: dict,
     format: str = "png",
     style: str = "comp_default",
-) -> str:
+):
     """Generate a component diagram from a configuration dictionary.
 
     Creates layered architecture diagrams showing components, layers,
@@ -77,7 +77,7 @@ async def generate_dependency_graph(
     config: dict,
     format: str = "png",
     style: str = "dep_default",
-) -> str:
+):
     """Generate a dependency graph from a configuration dictionary.
 
     Creates module dependency visualizations with force-directed layout,

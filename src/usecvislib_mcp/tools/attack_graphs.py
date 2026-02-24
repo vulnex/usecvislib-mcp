@@ -13,7 +13,7 @@ async def generate_attack_graph(
     config: dict,
     format: str = "png",
     style: str = "ag_default",
-) -> str:
+):
     """Generate an attack graph visualization from a configuration dictionary.
 
     The config should contain 'graph', 'hosts', 'vulnerabilities', 'privileges',

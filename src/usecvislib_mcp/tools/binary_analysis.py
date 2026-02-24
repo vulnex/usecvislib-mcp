@@ -15,7 +15,7 @@ from ..server import mcp
 async def analyze_binary_entropy(
     file_path: str,
     format: str = "png",
-) -> str:
+):
     """Generate an entropy visualization of a binary file.
 
     Displays byte entropy distribution across the file, useful for identifying
@@ -49,7 +49,7 @@ async def analyze_binary_entropy(
 async def analyze_binary_distribution(
     file_path: str,
     format: str = "png",
-) -> str:
+):
     """Generate a byte distribution visualization of a binary file.
 
     Shows the frequency distribution of byte values (0-255), useful for
@@ -83,7 +83,7 @@ async def analyze_binary_distribution(
 async def analyze_binary_heatmap(
     file_path: str,
     format: str = "png",
-) -> str:
+):
     """Generate a byte heatmap visualization of a binary file.
 
     Creates a 2D heatmap showing byte value patterns across the file,
@@ -117,7 +117,7 @@ async def analyze_binary_heatmap(
 async def analyze_binary_all(
     file_path: str,
     format: str = "png",
-) -> str:
+):
     """Generate all binary visualizations (entropy, distribution, heatmap).
 
     Produces a comprehensive visual analysis of the binary file in one call.

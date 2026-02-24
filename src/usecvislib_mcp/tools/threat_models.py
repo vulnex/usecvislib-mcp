@@ -14,7 +14,7 @@ async def generate_threat_model(
     format: str = "png",
     style: str = "tm_default",
     engine: str = "usecvislib",
-) -> str:
+):
     """Generate a threat model Data Flow Diagram from a configuration dictionary.
 
     The config should contain 'model', 'processes', 'datastores', 'externals',
