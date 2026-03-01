@@ -13,7 +13,7 @@
 
 """MCP tools for custom diagram generation."""
 
-from usecvislib import CustomDiagrams, USecVisLibError
+from usecvislib import CustomDiagrams
 
 from ..helpers import analyze_pattern_b, build_pattern_b, format_error, log_tool_call
 from ..server import mcp
@@ -45,7 +45,7 @@ async def generate_custom_diagram(
             build_method="BuildCustomDiagram",
             styleid=style,
         )
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -64,7 +64,7 @@ async def validate_custom_diagram(config: dict) -> str:
     """
     try:
         return await analyze_pattern_b(CustomDiagrams, config, "validate", raise_on_error=False)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -78,5 +78,5 @@ async def get_custom_diagram_stats(config: dict) -> str:
     """
     try:
         return await analyze_pattern_b(CustomDiagrams, config, "get_stats")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

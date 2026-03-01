@@ -18,7 +18,7 @@ import json
 import uuid
 from pathlib import Path
 
-from usecvislib import USecVisLibError, process_batch
+from usecvislib import process_batch
 
 from ..config import get_output_dir, get_rate_limiter, get_temp_dir
 from ..helpers import format_error, log_tool_call, validate_format, validate_int_range
@@ -115,5 +115,5 @@ async def batch_process(
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_batch)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

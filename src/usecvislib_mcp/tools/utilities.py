@@ -18,7 +18,6 @@ import json
 
 from usecvislib import (
     CustomDiagrams,
-    USecVisLibError,
     calculate_cvss_from_vector_unified,
     detect_cvss_version,
     parse_cvss_vector_unified,
@@ -58,7 +57,7 @@ async def convert_to_mermaid(
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_convert)
         return json.dumps({"mermaid_source": result}, indent=2)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -112,7 +111,7 @@ async def calculate_cvss_score(vector: str) -> str:
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_calculate)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -203,5 +202,5 @@ async def list_shapes(category: str = "") -> str:
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_list)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

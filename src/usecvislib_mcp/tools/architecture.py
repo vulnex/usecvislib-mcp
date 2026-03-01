@@ -15,7 +15,7 @@
 
 import json
 
-from usecvislib import ComponentDiagram, DependencyGraph, USecVisLibError
+from usecvislib import ComponentDiagram, DependencyGraph
 
 from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
 from ..server import mcp
@@ -45,7 +45,7 @@ async def generate_component_diagram(
         return await build_visualization(
             ComponentDiagram, config, "component_diagram", fmt=format, styleid=style
         )
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -64,7 +64,7 @@ async def validate_component_diagram(config: dict) -> str:
         result = await build_and_analyze(ComponentDiagram, config, "validate")
         errors = json.loads(result)
         return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -78,7 +78,7 @@ async def get_component_diagram_stats(config: dict) -> str:
     """
     try:
         return await build_and_analyze(ComponentDiagram, config, "get_stats")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -107,7 +107,7 @@ async def generate_dependency_graph(
         return await build_visualization(
             DependencyGraph, config, "dependency_graph", fmt=format, styleid=style
         )
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -126,7 +126,7 @@ async def validate_dependency_graph(config: dict) -> str:
         result = await build_and_analyze(DependencyGraph, config, "validate")
         errors = json.loads(result)
         return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -140,5 +140,5 @@ async def get_dependency_graph_stats(config: dict) -> str:
     """
     try:
         return await build_and_analyze(DependencyGraph, config, "get_stats")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

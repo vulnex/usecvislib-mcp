@@ -15,8 +15,9 @@
 
 import asyncio
 import json
+from pathlib import Path
 
-from usecvislib import BinVis, USecVisLibError
+from usecvislib import BinVis
 
 from ..config import get_rate_limiter, validate_input_path
 from ..helpers import format_error, log_tool_call, validate_format
@@ -24,6 +25,37 @@ from ..output import OutputHandler
 from ..server import mcp
 
 ALLOWED_BINARY_FORMATS = frozenset({"png", "pdf", "svg"})
+
+
+async def _build_binary_viz(
+    file_path: str, build_type: str, output_prefix: str, fmt: str
+):
+    """Shared helper for binary visualization tools.
+
+    Validates input, creates BinVis, runs the specified build type, and
+    returns the formatted result.
+
+    Args:
+        file_path: User-provided file path to analyze.
+        build_type: BinVis build type — 'entropy', 'distribution', 'heatmap', or 'all'.
+        output_prefix: Prefix for the output filename.
+        fmt: Output format — png, pdf, or svg.
+    """
+    validate_format(fmt, ALLOWED_BINARY_FORMATS)
+    get_rate_limiter().check(output_prefix)
+    validated_path = str(validate_input_path(file_path))
+    handler = OutputHandler()
+    output_path = handler.make_output_path(output_prefix, fmt)
+
+    def _sync_build():
+        output_base = str(Path(output_path).with_suffix(""))
+        bv = BinVis(validated_path, output_base, format=fmt, validate_paths=False)
+        bv.build(build_type)
+        return output_path
+
+    loop = asyncio.get_running_loop()
+    await loop.run_in_executor(None, _sync_build)
+    return handler.format_result(output_path, fmt)
 
 
 @mcp.tool()
@@ -42,24 +74,8 @@ async def analyze_binary_entropy(
         format: Output format — png, pdf, or svg.
     """
     try:
-        validate_format(format, ALLOWED_BINARY_FORMATS)
-        get_rate_limiter().check("analyze_binary_entropy")
-        validated_path = str(validate_input_path(file_path))
-        handler = OutputHandler()
-        output_path = handler.make_output_path("binary_entropy", format)
-
-        def _sync_build():
-            from pathlib import Path
-
-            output_base = str(Path(output_path).with_suffix(""))
-            bv = BinVis(validated_path, output_base, format=format, validate_paths=False)
-            bv.build("entropy")
-            return output_path
-
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, _sync_build)
-        return handler.format_result(output_path, format)
-    except (USecVisLibError, ValueError, Exception) as e:
+        return await _build_binary_viz(file_path, "entropy", "binary_entropy", format)
+    except Exception as e:
         return format_error(e)
 
 
@@ -79,24 +95,10 @@ async def analyze_binary_distribution(
         format: Output format — png, pdf, or svg.
     """
     try:
-        validate_format(format, ALLOWED_BINARY_FORMATS)
-        get_rate_limiter().check("analyze_binary_distribution")
-        validated_path = str(validate_input_path(file_path))
-        handler = OutputHandler()
-        output_path = handler.make_output_path("binary_distribution", format)
-
-        def _sync_build():
-            from pathlib import Path
-
-            output_base = str(Path(output_path).with_suffix(""))
-            bv = BinVis(validated_path, output_base, format=format, validate_paths=False)
-            bv.build("distribution")
-            return output_path
-
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, _sync_build)
-        return handler.format_result(output_path, format)
-    except (USecVisLibError, ValueError, Exception) as e:
+        return await _build_binary_viz(
+            file_path, "distribution", "binary_distribution", format
+        )
+    except Exception as e:
         return format_error(e)
 
 
@@ -116,24 +118,8 @@ async def analyze_binary_heatmap(
         format: Output format — png, pdf, or svg.
     """
     try:
-        validate_format(format, ALLOWED_BINARY_FORMATS)
-        get_rate_limiter().check("analyze_binary_heatmap")
-        validated_path = str(validate_input_path(file_path))
-        handler = OutputHandler()
-        output_path = handler.make_output_path("binary_heatmap", format)
-
-        def _sync_build():
-            from pathlib import Path
-
-            output_base = str(Path(output_path).with_suffix(""))
-            bv = BinVis(validated_path, output_base, format=format, validate_paths=False)
-            bv.build("heatmap")
-            return output_path
-
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, _sync_build)
-        return handler.format_result(output_path, format)
-    except (USecVisLibError, ValueError, Exception) as e:
+        return await _build_binary_viz(file_path, "heatmap", "binary_heatmap", format)
+    except Exception as e:
         return format_error(e)
 
 
@@ -152,24 +138,8 @@ async def analyze_binary_all(
         format: Output format — png, pdf, or svg.
     """
     try:
-        validate_format(format, ALLOWED_BINARY_FORMATS)
-        get_rate_limiter().check("analyze_binary_all")
-        validated_path = str(validate_input_path(file_path))
-        handler = OutputHandler()
-        output_path = handler.make_output_path("binary_all", format)
-
-        def _sync_build():
-            from pathlib import Path
-
-            output_base = str(Path(output_path).with_suffix(""))
-            bv = BinVis(validated_path, output_base, format=format, validate_paths=False)
-            bv.build("all")
-            return output_path
-
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, _sync_build)
-        return handler.format_result(output_path, format)
-    except (USecVisLibError, ValueError, Exception) as e:
+        return await _build_binary_viz(file_path, "all", "binary_all", format)
+    except Exception as e:
         return format_error(e)
 
 
@@ -196,5 +166,5 @@ async def get_binary_stats(file_path: str) -> str:
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_stats)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, ValueError, Exception) as e:
+    except Exception as e:
         return format_error(e)

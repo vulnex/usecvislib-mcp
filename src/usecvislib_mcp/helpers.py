@@ -20,6 +20,7 @@ import asyncio
 import functools
 import json
 import logging
+import re
 import time
 import uuid
 from contextlib import contextmanager
@@ -313,8 +314,6 @@ async def analyze_pattern_b(
 
 def _sanitize_error_message(message: str) -> str:
     """Strip internal file paths and sensitive details from error messages."""
-    import re
-
     # Strip absolute file paths (Unix and Windows patterns)
     sanitized = re.sub(r"(/[\w./-]+/)([\w.-]+)", r"\2", message)
     sanitized = re.sub(r"([A-Z]:\\[\w.\\-]+\\)([\w.-]+)", r"\2", sanitized)

@@ -15,8 +15,9 @@
 
 import asyncio
 import json
+from pathlib import Path
 
-from usecvislib import CloudDiagrams, USecVisLibError
+from usecvislib import CloudDiagrams
 
 from ..config import get_rate_limiter
 from ..helpers import analyze_pattern_b, format_error, log_tool_call, validate_format, validate_int_range
@@ -47,8 +48,6 @@ async def generate_cloud_diagram(
         output_path = handler.make_output_path("cloud_diagram", format)
 
         def _sync_render():
-            from pathlib import Path
-
             output_base = str(Path(output_path).with_suffix(""))
             cd = CloudDiagrams()
             cd.load_from_string(json.dumps(config), "json")
@@ -58,7 +57,7 @@ async def generate_cloud_diagram(
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, _sync_render)
         return handler.format_result(output_path, format)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -79,7 +78,7 @@ async def validate_cloud_diagram(config: dict) -> str:
         result = await analyze_pattern_b(CloudDiagrams, config, "validate")
         errors = json.loads(result)
         return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -93,7 +92,7 @@ async def get_cloud_diagram_stats(config: dict) -> str:
     """
     try:
         return await analyze_pattern_b(CloudDiagrams, config, "get_stats")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -122,7 +121,7 @@ async def search_cloud_icons(
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_search)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -146,7 +145,7 @@ async def list_cloud_providers() -> str:
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_list)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -177,5 +176,5 @@ async def list_cloud_icons(
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_list)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

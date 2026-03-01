@@ -26,7 +26,6 @@ from usecvislib import (
     PrivilegeGradient,
     ReportGenerator,
     ThreatModeling,
-    USecVisLibError,
 )
 
 from ..config import get_output_dir, get_rate_limiter
@@ -100,7 +99,7 @@ async def export_data(
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_export)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -163,5 +162,5 @@ async def generate_report(
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_report)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

@@ -15,8 +15,9 @@
 
 import asyncio
 import json
+from pathlib import Path
 
-from usecvislib import AttackTreeBuilder, AttackTrees, USecVisLibError
+from usecvislib import AttackTreeBuilder, AttackTrees
 
 from ..config import get_rate_limiter
 from ..helpers import (
@@ -52,7 +53,7 @@ async def generate_attack_tree(
         return await build_visualization(
             AttackTrees, config, "attack_tree", fmt=format, styleid=style
         )
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -74,7 +75,7 @@ async def validate_attack_tree(config: dict) -> str:
         result = await build_and_analyze(AttackTrees, config, "validate")
         errors = json.loads(result)
         return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -90,7 +91,7 @@ async def get_attack_tree_stats(config: dict) -> str:
     """
     try:
         return await build_and_analyze(AttackTrees, config, "get_stats")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -124,8 +125,6 @@ async def build_attack_tree_from_spec(
         output_path = handler.make_output_path("attack_tree", format)
 
         def _sync_build():
-            from pathlib import Path
-
             output_base = str(Path(output_path).with_suffix(""))
             builder = AttackTreeBuilder(name=name, root=root)
 
@@ -148,5 +147,5 @@ async def build_attack_tree_from_spec(
         loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, _sync_build)
         return handler.format_result(output_path, format)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

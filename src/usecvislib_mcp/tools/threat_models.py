@@ -15,7 +15,7 @@
 
 import json
 
-from usecvislib import ThreatModeling, USecVisLibError
+from usecvislib import ThreatModeling
 
 from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
 from ..server import mcp
@@ -55,7 +55,7 @@ async def generate_threat_model(
             styleid=style,
             engine=engine,
         )
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -74,7 +74,7 @@ async def validate_threat_model(config: dict) -> str:
         result = await build_and_analyze(ThreatModeling, config, "validate")
         errors = json.loads(result)
         return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -88,7 +88,7 @@ async def get_threat_model_stats(config: dict) -> str:
     """
     try:
         return await build_and_analyze(ThreatModeling, config, "get_stats")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -106,5 +106,5 @@ async def analyze_stride_threats(config: dict) -> str:
     """
     try:
         return await build_and_analyze(ThreatModeling, config, "analyze_stride")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

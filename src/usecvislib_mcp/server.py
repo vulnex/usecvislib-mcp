@@ -98,30 +98,31 @@ def _build_server() -> FastMCP:
 # Create the FastMCP instance — tool modules import this
 mcp = _build_server()
 
-# Import tool modules — they register via @mcp.tool()
 # Import prompt modules — they register via @mcp.prompt()
-from .prompts import guidance  # noqa: E402, F401
+from .prompts import guidance  # noqa: F401
 
 # Import resource modules — they register via @mcp.resource()
 from .resources import (
-    schemas,  # noqa: E402, F401
-    styles,  # noqa: E402, F401
-    templates,  # noqa: E402, F401
+    schemas,  # noqa: F401
+    styles,  # noqa: F401
+    templates,  # noqa: F401
 )
+
+# Import tool modules — they register via @mcp.tool()
 from .tools import (
-    analysis,  # noqa: E402, F401
-    architecture,  # noqa: E402, F401
-    attack_graphs,  # noqa: E402, F401
-    attack_trees,  # noqa: E402, F401
-    batch,  # noqa: E402, F401
-    binary_analysis,  # noqa: E402, F401
-    cloud_diagrams,  # noqa: E402, F401
-    custom_diagrams,  # noqa: E402, F401
-    export,  # noqa: E402, F401
-    mermaid,  # noqa: E402, F401
-    privilege_gradient,  # noqa: E402, F401
-    threat_models,  # noqa: E402, F401
-    utilities,  # noqa: E402, F401
+    analysis,  # noqa: F401
+    architecture,  # noqa: F401
+    attack_graphs,  # noqa: F401
+    attack_trees,  # noqa: F401
+    batch,  # noqa: F401
+    binary_analysis,  # noqa: F401
+    cloud_diagrams,  # noqa: F401
+    custom_diagrams,  # noqa: F401
+    export,  # noqa: F401
+    mermaid,  # noqa: F401
+    privilege_gradient,  # noqa: F401
+    threat_models,  # noqa: F401
+    utilities,  # noqa: F401
 )
 
 

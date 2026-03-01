@@ -16,7 +16,7 @@
 import asyncio
 import json
 
-from usecvislib import AttackGraphs, USecVisLibError, compare_files
+from usecvislib import AttackGraphs, compare_files
 
 from ..config import get_rate_limiter
 from ..helpers import build_and_analyze, format_error, log_tool_call, temp_config_file, validate_int_range
@@ -44,7 +44,7 @@ async def find_chokepoints(
     try:
         validate_int_range(top_n, "top_n", 1, 1000)
         return await build_and_analyze(AttackGraphs, config, "find_chokepoints", top_n=top_n)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -69,7 +69,7 @@ async def analyze_centrality(
     try:
         validate_int_range(top_n, "top_n", 1, 1000)
         return await build_and_analyze(AttackGraphs, config, "betweenness_centrality", top_n=top_n)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -107,5 +107,5 @@ async def compare_visualizations(
         loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_compare)
         return json.dumps(result, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

@@ -15,7 +15,7 @@
 
 import asyncio
 
-from usecvislib import MermaidDiagrams, USecVisLibError
+from usecvislib import MermaidDiagrams
 
 from ..config import get_rate_limiter
 from ..helpers import format_error, log_tool_call, validate_format, validate_int_range
@@ -72,5 +72,5 @@ async def render_mermaid(
         loop = asyncio.get_running_loop()
         result_path = await loop.run_in_executor(None, _sync_render)
         return handler.format_result(result_path, format)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)

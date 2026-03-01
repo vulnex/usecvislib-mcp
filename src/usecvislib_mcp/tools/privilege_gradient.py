@@ -15,7 +15,7 @@
 
 import json
 
-from usecvislib import PrivilegeGradient, USecVisLibError
+from usecvislib import PrivilegeGradient
 
 from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
 from ..server import mcp
@@ -43,7 +43,7 @@ async def generate_privilege_gradient(
         return await build_visualization(
             PrivilegeGradient, config, "privilege_gradient", fmt=format, styleid=style
         )
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -62,7 +62,7 @@ async def validate_privilege_gradient(config: dict) -> str:
         result = await build_and_analyze(PrivilegeGradient, config, "validate")
         errors = json.loads(result)
         return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -76,7 +76,7 @@ async def get_privilege_gradient_stats(config: dict) -> str:
     """
     try:
         return await build_and_analyze(PrivilegeGradient, config, "get_stats")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -93,7 +93,7 @@ async def detect_privilege_inversions(config: dict) -> str:
     """
     try:
         return await build_and_analyze(PrivilegeGradient, config, "detect_inversions")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
 
 
@@ -110,5 +110,5 @@ async def analyze_zone_influence(config: dict) -> str:
     """
     try:
         return await build_and_analyze(PrivilegeGradient, config, "get_zone_influence_matrix")
-    except (USecVisLibError, Exception) as e:
+    except Exception as e:
         return format_error(e)
