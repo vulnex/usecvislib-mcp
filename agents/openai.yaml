@@ -1,0 +1,22 @@
+# USecVisLib — OpenAI Codex MCP Dependency
+# Add this to your Codex agent configuration
+
+interface: skill
+name: usecvislib
+version: "1.2"
+source: https://github.com/vulnex/usecvislib-skill
+description: >
+  Security visualization domain knowledge and workflow guidance
+  for the USecVisLib library ecosystem.
+
+policy:
+  skill_file: SKILL.md   # from usecvislib-skill repo
+  reference_file: REFERENCE.md
+
+dependencies:
+  - type: mcp
+    name: usecvislib-mcp
+    install: pip install usecvislib-mcp
+    command: usecvislib-mcp serve
+    tools: 49
+    resources: 15

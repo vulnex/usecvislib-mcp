@@ -1,0 +1,40 @@
+# USecVisLib — Cursor Setup
+
+> Skill repo: <https://github.com/vulnex/usecvislib-skill>
+
+## MCP Server Configuration
+
+Add to your project-level `.cursor/mcp.json` (or global `~/.cursor/mcp.json`):
+
+```json
+{
+  "mcpServers": {
+    "usecvislib": {
+      "command": "usecvislib-mcp",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+Restart Cursor after saving. The 49 tools will appear in Cursor's tool list.
+
+## Loading Skill Knowledge
+
+Add a rule file so the AI agent has domain context when working with USecVisLib:
+
+1. Copy `SKILL.md` to `.cursor/rules/usecvislib.md` in your project
+2. Optionally copy `REFERENCE.md` alongside it for the full tool catalog
+
+Alternatively, reference the skill inline via a `.cursorrules` file:
+
+```
+When working with USecVisLib security visualizations, follow the guidance in SKILL.md
+and use the tool catalog in REFERENCE.md for function signatures.
+```
+
+## Notes
+
+- Cursor's MCP support exposes the same 49 tools with identical function names
+- The `examples/` directory can be referenced directly from the project tree
+- Style IDs, config schemas, and workflows in `SKILL.md` apply without modification
