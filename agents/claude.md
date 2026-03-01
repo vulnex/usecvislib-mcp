@@ -2,33 +2,45 @@
 
 ## MCP Server Configuration
 
-Add to your Claude Code MCP config (`~/.claude/mcp_servers.json` or project `.mcp.json`):
+### Option A: stdio (local)
+
+Add to your project `.mcp.json` (auto-discovered by Claude Code):
 
 ```json
 {
   "mcpServers": {
     "usecvislib": {
-      "command": "usecvislib-mcp",
-      "args": ["serve"],
-      "env": {}
+      "command": "usecvislib-mcp"
     }
   }
 }
 ```
 
-## Skill Installation
+### Option B: HTTP (Docker)
 
-Install the skill so Claude Code loads `SKILL.md` as domain knowledge and gains access to the complete tool catalog in [REFERENCE.md](https://github.com/vulnex/usecvislib-skill/blob/main/REFERENCE.md):
+```json
+{
+  "mcpServers": {
+    "usecvislib": {
+      "type": "http",
+      "url": "http://localhost:8002/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-api-key>"
+      }
+    }
+  }
+}
+```
+
+## Companion Skill
+
+The [USecVisLib Skill](https://github.com/vulnex/usecvislib-skill) provides domain knowledge and workflow guidance. Install it using the Claude Code slash command:
 
 ```
-claude skill add /path/to/usecvislib
+/install-github-skill https://github.com/vulnex/usecvislib-skill
 ```
 
-Or from the GitHub repo:
-
-```
-claude skill add https://github.com/vulnex/usecvislib-skill
-```
+This loads `SKILL.md` as domain knowledge and gives Claude access to the complete tool catalog in [REFERENCE.md](https://github.com/vulnex/usecvislib-skill/blob/main/REFERENCE.md).
 
 ## Resource URIs
 

@@ -8,13 +8,12 @@ Add to your OpenClaw MCP configuration:
 mcp_servers:
   usecvislib:
     command: usecvislib-mcp
-    args: ["serve"]
 ```
 
 Then load the skill knowledge:
 
 ```
-claw skill install /path/to/usecvislib
+claw skill install /path/to/usecvislib-skill
 ```
 
 ## Option 2: Install from GitHub
@@ -39,10 +38,9 @@ OpenClaw reads these files for domain knowledge:
 
 - `SKILL.md` — primary skill prompt (visualization guidance, workflows, best practices)
 - `REFERENCE.md` — complete tool catalog and integration reference
-- `examples/` — sample configs for all 9 visualization types
 
 ## Notes
 
 - The MCP server exposes 49 tools, 15 resources, and 6 prompt templates
 - Tool function names (e.g., `generate_attack_tree`) are identical across all agent integrations
-- All file I/O is local — generated images write to the working directory
+- All file I/O is local — generated images write to the configured output directory

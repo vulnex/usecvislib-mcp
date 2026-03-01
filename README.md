@@ -14,6 +14,7 @@ Provides 49 tools, 15 resources, and 6 prompt templates that give AI assistants 
   - [Claude Code / Cursor (HTTP — Docker)](#claude-code--cursor-http--docker)
   - [Claude Desktop (stdio)](#claude-desktop-stdio)
   - [Claude Desktop (HTTP)](#claude-desktop-http)
+- [Agent Setup Guides](#agent-setup-guides)
 - [Transport Options](#transport-options)
 - [Authentication](#authentication)
 - [Configuration Reference](#configuration-reference)
@@ -266,6 +267,20 @@ Add to your Claude Desktop config (`~/Library/Application Support/Claude/claude_
   }
 }
 ```
+
+## Agent Setup Guides
+
+The [`agents/`](agents/) directory contains setup instructions for specific AI coding agents:
+
+| Agent | File | Config Format |
+|-------|------|---------------|
+| **Claude Code** | [`agents/claude.md`](agents/claude.md) | `.mcp.json` (JSON) |
+| **Cursor** | [`agents/cursor.md`](agents/cursor.md) | `.cursor/mcp.json` (JSON) |
+| **Windsurf** | [`agents/windsurf.md`](agents/windsurf.md) | `mcp_config.json` (JSON) |
+| **OpenClaw** | [`agents/openclaw.md`](agents/openclaw.md) | YAML config |
+| **OpenAI Codex** | [`agents/openai.yaml`](agents/openai.yaml) | YAML dependency spec |
+
+Each guide covers MCP server configuration, skill/knowledge loading, and agent-specific notes. All agents connect to the same 49 tools with identical function names.
 
 ## Transport Options
 

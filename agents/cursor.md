@@ -4,14 +4,31 @@
 
 ## MCP Server Configuration
 
+### Option A: stdio (local)
+
 Add to your project-level `.cursor/mcp.json` (or global `~/.cursor/mcp.json`):
 
 ```json
 {
   "mcpServers": {
     "usecvislib": {
-      "command": "usecvislib-mcp",
-      "args": ["serve"]
+      "command": "usecvislib-mcp"
+    }
+  }
+}
+```
+
+### Option B: HTTP (Docker)
+
+```json
+{
+  "mcpServers": {
+    "usecvislib": {
+      "type": "http",
+      "url": "http://localhost:8002/mcp",
+      "headers": {
+        "Authorization": "Bearer <your-api-key>"
+      }
     }
   }
 }
