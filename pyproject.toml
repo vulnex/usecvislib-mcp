@@ -26,6 +26,7 @@ dependencies = [
     "mcp>=1.0.0,<2",
     "uvicorn>=0.30.0,<1",
     "usecvislib>=0.3.4,<1",
+    "toml>=0.10.0",
 ]
 
 [project.optional-dependencies]

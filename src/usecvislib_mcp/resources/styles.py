@@ -14,10 +14,13 @@
 """MCP resources for browsing USecVisLib style presets."""
 
 import json
+import logging
 from pathlib import Path
 
 from ..config import resolve_models_dir
 from ..server import mcp
+
+logger = logging.getLogger("usecvislib_mcp")
 
 # Map visualization types to their config file names
 STYLE_CONFIG_MAP = {
@@ -44,7 +47,8 @@ def _parse_style_ids(config_path: Path) -> list[str]:
 
         data = toml.load(str(config_path))
         style_ids = list(data.keys())
-    except Exception:
+    except Exception as exc:
+        logger.warning("TOML parsing failed for %s (%s), using fallback parser", config_path, exc)
         # Fallback: parse [section] headers manually
         try:
             content = config_path.read_text(encoding="utf-8")

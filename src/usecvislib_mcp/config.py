@@ -16,16 +16,26 @@
 import logging
 import os
 import sys
+import tempfile
+import threading
 import time
 from collections import defaultdict
 from pathlib import Path
+
+# Build user-scoped default directories to avoid predictable shared paths.
+# On Unix, includes UID; on Windows, tempfile.gettempdir() is already per-user.
+_base_tmp = Path(tempfile.gettempdir())
+try:
+    _uid_suffix = f"-{os.getuid()}"
+except AttributeError:
+    _uid_suffix = ""  # Windows — tempdir is already user-scoped
 
 # Environment variable defaults
 DEFAULTS = {
     "USECVISLIB_MCP_LOG_LEVEL": "INFO",
     "USECVISLIB_MCP_TRANSPORT": "stdio",
-    "USECVISLIB_MCP_OUTPUT_DIR": "/tmp/usecvislib-mcp-output",
-    "USECVISLIB_MCP_TEMP_DIR": "/tmp/usecvislib-mcp-temp",
+    "USECVISLIB_MCP_OUTPUT_DIR": str(_base_tmp / f"usecvislib-mcp-output{_uid_suffix}"),
+    "USECVISLIB_MCP_TEMP_DIR": str(_base_tmp / f"usecvislib-mcp-temp{_uid_suffix}"),
     "USECVISLIB_MCP_MAX_CONFIG_SIZE": "10485760",
     "USECVISLIB_MCP_DEFAULT_FORMAT": "png",
     "USECVISLIB_MCP_HOST": "127.0.0.1",
@@ -38,6 +48,17 @@ DEFAULTS = {
 def get_env(name: str) -> str:
     """Get environment variable with default fallback."""
     return os.environ.get(name, DEFAULTS.get(name, ""))
+
+
+def _get_int_env(name: str) -> int:
+    """Get an environment variable as an integer with clear error on bad values."""
+    raw = get_env(name)
+    try:
+        return int(raw)
+    except (ValueError, TypeError):
+        raise ValueError(
+            f"Environment variable {name} must be an integer, got '{raw}'"
+        ) from None
 
 
 def get_log_level() -> str:
@@ -53,7 +74,7 @@ def get_host() -> str:
 
 
 def get_port() -> int:
-    return int(get_env("USECVISLIB_MCP_PORT"))
+    return _get_int_env("USECVISLIB_MCP_PORT")
 
 
 def get_api_key() -> str:
@@ -77,7 +98,7 @@ def get_temp_dir() -> Path:
 
 
 def get_max_config_size() -> int:
-    return int(get_env("USECVISLIB_MCP_MAX_CONFIG_SIZE"))
+    return _get_int_env("USECVISLIB_MCP_MAX_CONFIG_SIZE")
 
 
 def get_default_format() -> str:
@@ -86,7 +107,7 @@ def get_default_format() -> str:
 
 def get_output_ttl_seconds() -> int:
     """Get max age for output files in seconds. 0 = no cleanup."""
-    return int(get_env("USECVISLIB_MCP_OUTPUT_TTL_SECONDS"))
+    return _get_int_env("USECVISLIB_MCP_OUTPUT_TTL_SECONDS")
 
 
 def configure_logging() -> logging.Logger:
@@ -223,7 +244,13 @@ def validate_input_path(file_path: str) -> Path:
 
 def get_rate_limit() -> int:
     """Get max tool calls per minute. 0 = unlimited."""
-    return int(os.environ.get("USECVISLIB_MCP_RATE_LIMIT", "60"))
+    raw = os.environ.get("USECVISLIB_MCP_RATE_LIMIT", "60")
+    try:
+        return int(raw)
+    except (ValueError, TypeError):
+        raise ValueError(
+            f"Environment variable USECVISLIB_MCP_RATE_LIMIT must be an integer, got '{raw}'"
+        ) from None
 
 
 class RateLimiter:
@@ -253,20 +280,28 @@ class RateLimiter:
         self._calls[tool_name].append(now)
 
 
-# Global rate limiter instance (initialized lazily)
+# Global rate limiter instance (initialized lazily, thread-safe)
 _rate_limiter: RateLimiter | None = None
+_rate_limiter_lock = threading.Lock()
 
 
 def get_rate_limiter() -> RateLimiter:
-    """Get or create the global rate limiter."""
+    """Get or create the global rate limiter (thread-safe)."""
     global _rate_limiter
     if _rate_limiter is None:
-        _rate_limiter = RateLimiter(max_calls_per_minute=get_rate_limit())
+        with _rate_limiter_lock:
+            if _rate_limiter is None:
+                _rate_limiter = RateLimiter(max_calls_per_minute=get_rate_limit())
     return _rate_limiter
 
 
 def ensure_directories() -> None:
-    """Create output and temp directories with restrictive permissions."""
+    """Create output and temp directories with restrictive permissions.
+
+    Checks ownership of existing directories to detect potential
+    directory pre-creation attacks on multi-user systems.
+    """
+    logger = logging.getLogger("usecvislib_mcp")
     for d in (get_output_dir(), get_temp_dir()):
         d.mkdir(parents=True, exist_ok=True)
         # Set restrictive permissions (owner-only) to protect sensitive configs
@@ -274,3 +309,18 @@ def ensure_directories() -> None:
             d.chmod(0o700)
         except OSError:
             pass  # Best-effort on platforms that don't support chmod
+        # Verify ownership on Unix systems
+        try:
+            dir_stat = d.stat()
+            current_uid = os.getuid()
+            if dir_stat.st_uid != current_uid:
+                logger.warning(
+                    "Directory %s is owned by uid %d, not current user %d. "
+                    "This may indicate a directory pre-creation attack. "
+                    "Consider using a different path via environment variables.",
+                    d,
+                    dir_stat.st_uid,
+                    current_uid,
+                )
+        except (AttributeError, OSError):
+            pass  # os.getuid() not available on Windows; stat may fail
