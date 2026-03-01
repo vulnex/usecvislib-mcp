@@ -19,7 +19,7 @@ import json
 from usecvislib import BinVis, USecVisLibError
 
 from ..config import get_rate_limiter, validate_input_path
-from ..helpers import ALLOWED_IMAGE_FORMATS, format_error, validate_format
+from ..helpers import ALLOWED_IMAGE_FORMATS, format_error, log_tool_call, validate_format
 from ..output import OutputHandler
 from ..server import mcp
 
@@ -27,6 +27,7 @@ ALLOWED_BINARY_FORMATS = frozenset({"png", "pdf", "svg"})
 
 
 @mcp.tool()
+@log_tool_call
 async def analyze_binary_entropy(
     file_path: str,
     format: str = "png",
@@ -63,6 +64,7 @@ async def analyze_binary_entropy(
 
 
 @mcp.tool()
+@log_tool_call
 async def analyze_binary_distribution(
     file_path: str,
     format: str = "png",
@@ -99,6 +101,7 @@ async def analyze_binary_distribution(
 
 
 @mcp.tool()
+@log_tool_call
 async def analyze_binary_heatmap(
     file_path: str,
     format: str = "png",
@@ -135,6 +138,7 @@ async def analyze_binary_heatmap(
 
 
 @mcp.tool()
+@log_tool_call
 async def analyze_binary_all(
     file_path: str,
     format: str = "png",
@@ -170,6 +174,7 @@ async def analyze_binary_all(
 
 
 @mcp.tool()
+@log_tool_call
 async def get_binary_stats(file_path: str) -> str:
     """Get statistical summary of a binary file.
 

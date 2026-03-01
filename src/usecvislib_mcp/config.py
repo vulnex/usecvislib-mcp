@@ -154,6 +154,31 @@ def get_allowed_input_dirs() -> list[Path]:
     return [Path(d.strip()).resolve() for d in raw.split(",") if d.strip()]
 
 
+_allowed_input_dirs_warned = False
+
+
+def warn_if_unrestricted_http() -> None:
+    """Log a warning if HTTP transport is active with no input dir restrictions.
+
+    Called once at startup to alert operators that binary analysis tools
+    can read any file accessible to the process user.
+    """
+    global _allowed_input_dirs_warned
+    if _allowed_input_dirs_warned:
+        return
+    _allowed_input_dirs_warned = True
+
+    transport = get_transport()
+    if transport in ("sse", "streamable-http") and not get_allowed_input_dirs():
+        logger = logging.getLogger("usecvislib_mcp")
+        logger.warning(
+            "HTTP transport (%s) running WITHOUT input directory restrictions. "
+            "Binary analysis tools can read any file the process user can access. "
+            "Set USECVISLIB_MCP_ALLOWED_INPUT_DIRS to restrict file access.",
+            transport,
+        )
+
+
 def validate_input_path(file_path: str) -> Path:
     """Validate and resolve an input file path.
 

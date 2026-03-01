@@ -19,12 +19,13 @@ import json
 from usecvislib import CloudDiagrams, USecVisLibError
 
 from ..config import get_rate_limiter
-from ..helpers import analyze_pattern_b, format_error, validate_format
+from ..helpers import analyze_pattern_b, format_error, log_tool_call, validate_format
 from ..output import OutputHandler
 from ..server import mcp
 
 
 @mcp.tool()
+@log_tool_call
 async def generate_cloud_diagram(
     config: dict,
     format: str = "png",
@@ -62,6 +63,7 @@ async def generate_cloud_diagram(
 
 
 @mcp.tool()
+@log_tool_call
 async def validate_cloud_diagram(config: dict) -> str:
     """Validate a cloud diagram configuration and return any errors.
 
@@ -84,6 +86,7 @@ async def validate_cloud_diagram(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def get_cloud_diagram_stats(config: dict) -> str:
     """Get statistics about a cloud diagram — node counts, providers used, etc.
 
@@ -97,6 +100,7 @@ async def get_cloud_diagram_stats(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def search_cloud_icons(
     query: str,
     limit: int = 20,
@@ -124,6 +128,7 @@ async def search_cloud_icons(
 
 
 @mcp.tool()
+@log_tool_call
 async def list_cloud_providers() -> str:
     """List available cloud providers for diagram generation.
 
@@ -147,6 +152,7 @@ async def list_cloud_providers() -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def list_cloud_icons(
     provider: str,
     category: str = "",

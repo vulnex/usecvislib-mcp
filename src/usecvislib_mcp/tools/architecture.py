@@ -17,7 +17,7 @@ import json
 
 from usecvislib import ComponentDiagram, DependencyGraph, USecVisLibError
 
-from ..helpers import build_and_analyze, build_visualization, format_error
+from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
 from ..server import mcp
 
 
@@ -25,6 +25,7 @@ from ..server import mcp
 
 
 @mcp.tool()
+@log_tool_call
 async def generate_component_diagram(
     config: dict,
     format: str = "png",
@@ -50,6 +51,7 @@ async def generate_component_diagram(
 
 
 @mcp.tool()
+@log_tool_call
 async def validate_component_diagram(config: dict) -> str:
     """Validate a component diagram configuration and return any errors.
 
@@ -70,6 +72,7 @@ async def validate_component_diagram(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def get_component_diagram_stats(config: dict) -> str:
     """Get statistics about a component diagram — layer counts, component counts, etc.
 
@@ -86,6 +89,7 @@ async def get_component_diagram_stats(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def generate_dependency_graph(
     config: dict,
     format: str = "png",
@@ -111,6 +115,7 @@ async def generate_dependency_graph(
 
 
 @mcp.tool()
+@log_tool_call
 async def validate_dependency_graph(config: dict) -> str:
     """Validate a dependency graph configuration and return any errors.
 
@@ -131,6 +136,7 @@ async def validate_dependency_graph(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def get_dependency_graph_stats(config: dict) -> str:
     """Get statistics about a dependency graph — module counts, dependency counts, etc.
 

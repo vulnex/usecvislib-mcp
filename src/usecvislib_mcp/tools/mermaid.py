@@ -18,7 +18,7 @@ import asyncio
 from usecvislib import MermaidDiagrams, USecVisLibError
 
 from ..config import get_rate_limiter
-from ..helpers import format_error, validate_format
+from ..helpers import format_error, log_tool_call, validate_format
 from ..output import OutputHandler
 from ..server import mcp
 
@@ -26,6 +26,7 @@ ALLOWED_MERMAID_FORMATS = frozenset({"png", "pdf", "svg"})
 
 
 @mcp.tool()
+@log_tool_call
 async def render_mermaid(
     source: str,
     format: str = "png",

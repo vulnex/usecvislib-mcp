@@ -17,11 +17,12 @@ import json
 
 from usecvislib import CustomDiagrams, USecVisLibError
 
-from ..helpers import analyze_pattern_b, build_pattern_b, format_error
+from ..helpers import analyze_pattern_b, build_pattern_b, format_error, log_tool_call
 from ..server import mcp
 
 
 @mcp.tool()
+@log_tool_call
 async def generate_custom_diagram(
     config: dict,
     format: str = "png",
@@ -51,6 +52,7 @@ async def generate_custom_diagram(
 
 
 @mcp.tool()
+@log_tool_call
 async def validate_custom_diagram(config: dict) -> str:
     """Validate a custom diagram configuration and return any errors.
 
@@ -70,6 +72,7 @@ async def validate_custom_diagram(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def get_custom_diagram_stats(config: dict) -> str:
     """Get statistics about a custom diagram — node counts, edge counts, etc.
 

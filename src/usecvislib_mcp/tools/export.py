@@ -30,7 +30,7 @@ from usecvislib import (
 )
 
 from ..config import get_output_dir, get_rate_limiter
-from ..helpers import format_error, temp_config_file
+from ..helpers import format_error, log_tool_call, temp_config_file
 from ..server import mcp
 
 # Mapping from viz_type string to Pattern A class
@@ -45,6 +45,7 @@ _VIZ_CLASS_MAP = {
 
 
 @mcp.tool()
+@log_tool_call
 async def export_data(
     data: dict | list,
     format: str = "json",
@@ -106,6 +107,7 @@ async def export_data(
 
 
 @mcp.tool()
+@log_tool_call
 async def generate_report(
     config: dict,
     viz_type: str,

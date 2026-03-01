@@ -17,11 +17,12 @@ import json
 
 from usecvislib import AttackGraphs, USecVisLibError
 
-from ..helpers import build_and_analyze, build_visualization, format_error
+from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
 from ..server import mcp
 
 
 @mcp.tool()
+@log_tool_call
 async def generate_attack_graph(
     config: dict,
     format: str = "png",
@@ -46,6 +47,7 @@ async def generate_attack_graph(
 
 
 @mcp.tool()
+@log_tool_call
 async def validate_attack_graph(config: dict) -> str:
     """Validate an attack graph configuration and return any errors.
 
@@ -66,6 +68,7 @@ async def validate_attack_graph(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def get_attack_graph_stats(config: dict) -> str:
     """Get statistics about an attack graph — node counts, edge counts, etc.
 
@@ -79,6 +82,7 @@ async def get_attack_graph_stats(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def find_attack_paths(
     config: dict,
     source: str,
@@ -113,6 +117,7 @@ async def find_attack_paths(
 
 
 @mcp.tool()
+@log_tool_call
 async def analyze_critical_nodes(
     config: dict,
     top_n: int = 10,

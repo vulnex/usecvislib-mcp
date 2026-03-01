@@ -24,6 +24,7 @@ from .config import (
     get_host,
     get_port,
     get_transport,
+    warn_if_unrestricted_http,
 )
 
 # Configure logging to stderr before anything else
@@ -110,6 +111,7 @@ from .prompts import guidance  # noqa: E402, F401
 def main():
     """Entry point for the MCP server."""
     ensure_directories()
+    warn_if_unrestricted_http()
     logger.info("Starting usecvislib MCP server (transport=%s)", get_transport())
     mcp.run(transport=get_transport())
 

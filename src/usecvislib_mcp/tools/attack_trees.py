@@ -19,12 +19,13 @@ import json
 from usecvislib import AttackTreeBuilder, AttackTrees, USecVisLibError
 
 from ..config import get_rate_limiter
-from ..helpers import build_and_analyze, build_visualization, format_error, validate_format
+from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call, validate_format
 from ..output import OutputHandler
 from ..server import mcp
 
 
 @mcp.tool()
+@log_tool_call
 async def generate_attack_tree(
     config: dict,
     format: str = "png",
@@ -50,6 +51,7 @@ async def generate_attack_tree(
 
 
 @mcp.tool()
+@log_tool_call
 async def validate_attack_tree(config: dict) -> str:
     """Validate an attack tree configuration and return any errors.
 
@@ -73,6 +75,7 @@ async def validate_attack_tree(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def get_attack_tree_stats(config: dict) -> str:
     """Get statistics about an attack tree configuration.
 
@@ -88,6 +91,7 @@ async def get_attack_tree_stats(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def build_attack_tree_from_spec(
     name: str,
     root: str,
@@ -122,10 +126,12 @@ async def build_attack_tree_from_spec(
             builder = AttackTreeBuilder(name=name, root=root)
 
             for node in nodes:
+                node = dict(node)  # Copy to avoid mutating caller's data
                 node_id = node.pop("id") if "id" in node else node.pop("label", root)
                 builder.add_node(node_id, **node)
 
             for edge in edges:
+                edge = dict(edge)  # Copy to avoid mutating caller's data
                 from_node = edge.pop("from")
                 to_node = edge.pop("to")
                 label = edge.pop("label", "")

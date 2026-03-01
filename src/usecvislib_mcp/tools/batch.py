@@ -21,7 +21,7 @@ from pathlib import Path
 from usecvislib import USecVisLibError, process_batch
 
 from ..config import get_output_dir, get_rate_limiter, get_temp_dir
-from ..helpers import format_error, validate_format
+from ..helpers import format_error, log_tool_call, validate_format
 from ..server import mcp
 
 
@@ -38,6 +38,7 @@ ALLOWED_MODULE_TYPES = frozenset({
 
 
 @mcp.tool()
+@log_tool_call
 async def batch_process(
     module_type: str,
     configs: list[dict],

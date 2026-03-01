@@ -19,11 +19,12 @@ import json
 from usecvislib import AttackGraphs, USecVisLibError, compare_files
 
 from ..config import get_rate_limiter
-from ..helpers import build_and_analyze, format_error, temp_config_file
+from ..helpers import build_and_analyze, format_error, log_tool_call, temp_config_file
 from ..server import mcp
 
 
 @mcp.tool()
+@log_tool_call
 async def find_chokepoints(
     config: dict,
     top_n: int = 10,
@@ -49,6 +50,7 @@ async def find_chokepoints(
 
 
 @mcp.tool()
+@log_tool_call
 async def analyze_centrality(
     config: dict,
     top_n: int = 10,
@@ -74,6 +76,7 @@ async def analyze_centrality(
 
 
 @mcp.tool()
+@log_tool_call
 async def compare_visualizations(
     old_config: dict,
     new_config: dict,

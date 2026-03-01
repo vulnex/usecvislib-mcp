@@ -29,11 +29,12 @@ from usecvislib import (
 )
 
 from ..config import get_rate_limiter
-from ..helpers import format_error, temp_config_file
+from ..helpers import format_error, log_tool_call, temp_config_file
 from ..server import mcp
 
 
 @mcp.tool()
+@log_tool_call
 async def convert_to_mermaid(
     config: dict,
     viz_type: str = "",
@@ -65,6 +66,7 @@ async def convert_to_mermaid(
 
 
 @mcp.tool()
+@log_tool_call
 async def calculate_cvss_score(vector: str) -> str:
     """Calculate a CVSS score from a vector string.
 
@@ -122,6 +124,7 @@ async def calculate_cvss_score(vector: str) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def detect_config_type(config: dict) -> str:
     """Detect the visualization type from a configuration dictionary.
 
@@ -196,6 +199,7 @@ async def detect_config_type(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def list_shapes(category: str = "") -> str:
     """List available shapes for custom diagrams.
 

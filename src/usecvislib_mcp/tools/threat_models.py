@@ -17,11 +17,12 @@ import json
 
 from usecvislib import ThreatModeling, USecVisLibError
 
-from ..helpers import build_and_analyze, build_visualization, format_error
+from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
 from ..server import mcp
 
 
 @mcp.tool()
+@log_tool_call
 async def generate_threat_model(
     config: dict,
     format: str = "png",
@@ -53,6 +54,7 @@ async def generate_threat_model(
 
 
 @mcp.tool()
+@log_tool_call
 async def validate_threat_model(config: dict) -> str:
     """Validate a threat model configuration and return any errors.
 
@@ -73,6 +75,7 @@ async def validate_threat_model(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def get_threat_model_stats(config: dict) -> str:
     """Get statistics about a threat model — element counts, flow counts, etc.
 
@@ -86,6 +89,7 @@ async def get_threat_model_stats(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def analyze_stride_threats(config: dict) -> str:
     """Perform STRIDE threat analysis on a threat model.
 

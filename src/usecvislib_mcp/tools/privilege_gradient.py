@@ -17,11 +17,12 @@ import json
 
 from usecvislib import PrivilegeGradient, USecVisLibError
 
-from ..helpers import build_and_analyze, build_visualization, format_error
+from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
 from ..server import mcp
 
 
 @mcp.tool()
+@log_tool_call
 async def generate_privilege_gradient(
     config: dict,
     format: str = "png",
@@ -47,6 +48,7 @@ async def generate_privilege_gradient(
 
 
 @mcp.tool()
+@log_tool_call
 async def validate_privilege_gradient(config: dict) -> str:
     """Validate a privilege gradient configuration and return any errors.
 
@@ -67,6 +69,7 @@ async def validate_privilege_gradient(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def get_privilege_gradient_stats(config: dict) -> str:
     """Get statistics about a privilege gradient — zone counts, component counts, etc.
 
@@ -80,6 +83,7 @@ async def get_privilege_gradient_stats(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def detect_privilege_inversions(config: dict) -> str:
     """Detect privilege inversions in a privilege gradient configuration.
 
@@ -96,6 +100,7 @@ async def detect_privilege_inversions(config: dict) -> str:
 
 
 @mcp.tool()
+@log_tool_call
 async def analyze_zone_influence(config: dict) -> str:
     """Analyze the influence matrix between trust zones.
 

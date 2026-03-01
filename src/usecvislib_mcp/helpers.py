@@ -17,8 +17,10 @@ Provides the common pattern: config dict → temp file → viz class → output.
 """
 
 import asyncio
+import functools
 import json
 import logging
+import time
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
@@ -37,6 +39,29 @@ def validate_format(fmt: str, allowed: frozenset = ALLOWED_IMAGE_FORMATS) -> Non
     """Validate that the output format is in the allowed set."""
     if fmt not in allowed:
         raise ValueError(f"Invalid format '{fmt}'. Allowed: {', '.join(sorted(allowed))}")
+
+
+def log_tool_call(func):
+    """Decorator that logs tool invocation, duration, and success/failure."""
+
+    @functools.wraps(func)
+    async def wrapper(*args, **kwargs):
+        tool_name = func.__name__
+        start = time.monotonic()
+        logger.info("Tool call started: %s", tool_name)
+        try:
+            result = await func(*args, **kwargs)
+            elapsed = time.monotonic() - start
+            # Check if the result indicates an error
+            status = "error" if isinstance(result, str) and '"error"' in result[:50] else "ok"
+            logger.info("Tool call finished: %s status=%s duration=%.3fs", tool_name, status, elapsed)
+            return result
+        except Exception:
+            elapsed = time.monotonic() - start
+            logger.info("Tool call finished: %s status=exception duration=%.3fs", tool_name, elapsed)
+            raise
+
+    return wrapper
 
 
 # Whitelist of methods allowed via dynamic dispatch (getattr)
