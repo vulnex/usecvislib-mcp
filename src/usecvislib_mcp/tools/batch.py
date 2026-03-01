@@ -19,8 +19,8 @@ import uuid
 
 from usecvislib import USecVisLibError, process_batch
 
-from ..config import get_output_dir, get_temp_dir
-from ..helpers import format_error
+from ..config import get_output_dir, get_rate_limiter, get_temp_dir
+from ..helpers import format_error, validate_format
 from ..server import mcp
 
 
@@ -54,6 +54,8 @@ async def batch_process(
         JSON with summary (success/failure counts) and individual results.
     """
     try:
+        validate_format(format)
+        get_rate_limiter().check("batch_process")
         if len(configs) > MAX_BATCH_CONFIGS:
             return format_error(ValueError(
                 f"Batch size ({len(configs)}) exceeds maximum ({MAX_BATCH_CONFIGS})"
@@ -94,7 +96,7 @@ async def batch_process(
                     except OSError:
                         pass
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_batch)
         return json.dumps(result, indent=2, default=str)
     except (USecVisLibError, Exception) as e:

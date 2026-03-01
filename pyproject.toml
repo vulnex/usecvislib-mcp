@@ -7,6 +7,7 @@ name = "usecvislib-mcp"
 version = "0.4.0"
 description = "MCP server for USecVisLib security visualization library"
 license = "Apache-2.0"
+readme = "README.md"
 requires-python = ">=3.10"
 authors = [
     {name = "VULNEX", email = "info@vulnex.com"},
@@ -36,6 +37,11 @@ dev = [
 
 [project.scripts]
 usecvislib-mcp = "usecvislib_mcp.server:main"
+
+[project.urls]
+Homepage = "https://github.com/vulnex/usecvislib-mcp"
+Repository = "https://github.com/vulnex/usecvislib-mcp"
+Issues = "https://github.com/vulnex/usecvislib-mcp/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

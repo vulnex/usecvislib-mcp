@@ -1,0 +1,14 @@
+.git/
+__pycache__/
+*.pyc
+*.egg-info/
+dist/
+build/
+*.egg
+tests/
+.pytest_cache/
+.DS_Store
+.claude/
+.mcp.json
+.env
+.env.*

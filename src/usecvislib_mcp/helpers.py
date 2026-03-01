@@ -29,6 +29,16 @@ from .output import OutputHandler
 
 logger = logging.getLogger("usecvislib_mcp")
 
+# Allowed output formats for image generation
+ALLOWED_IMAGE_FORMATS = frozenset({"png", "pdf", "svg", "dot"})
+
+
+def validate_format(fmt: str, allowed: frozenset = ALLOWED_IMAGE_FORMATS) -> None:
+    """Validate that the output format is in the allowed set."""
+    if fmt not in allowed:
+        raise ValueError(f"Invalid format '{fmt}'. Allowed: {', '.join(sorted(allowed))}")
+
+
 # Whitelist of methods allowed via dynamic dispatch (getattr)
 # Prevents reflection attacks where arbitrary methods could be invoked
 ALLOWED_ANALYSIS_METHODS = frozenset({
@@ -37,7 +47,9 @@ ALLOWED_ANALYSIS_METHODS = frozenset({
     "analyze_stride",
     "detect_inversions",
     "analyze_zone_influence",
+    "get_zone_influence_matrix",
     "find_paths",
+    "find_attack_paths",
     "analyze_critical_nodes",
     "find_chokepoints",
     "betweenness_centrality",
@@ -46,6 +58,7 @@ ALLOWED_ANALYSIS_METHODS = frozenset({
 ALLOWED_BUILD_METHODS = frozenset({
     "render",
     "build",
+    "BuildCustomDiagram",
 })
 
 
@@ -101,6 +114,7 @@ async def build_visualization(
     4. Runs viz_class(inputfile, outputfile, format, styleid).build() in executor
     5. Returns formatted result via OutputHandler
     """
+    validate_format(fmt)
     get_rate_limiter().check(output_prefix)
     handler = OutputHandler()
     output_path = handler.make_output_path(output_prefix, fmt)
@@ -120,7 +134,7 @@ async def build_visualization(
             viz.build()
         return output_path
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     result_path = await loop.run_in_executor(None, _sync_build)
     return handler.format_result(result_path, fmt)
 
@@ -155,7 +169,7 @@ async def build_and_analyze(
             method = getattr(viz, analysis_method)
             return method(**method_kwargs)
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(None, _sync_analyze)
     return json.dumps(result, indent=2, default=str)
 
@@ -175,6 +189,7 @@ async def build_pattern_b(
     3. Calls the build/render method with output path
     4. Returns formatted result
     """
+    validate_format(fmt)
     get_rate_limiter().check(output_prefix)
     handler = OutputHandler()
     output_path = handler.make_output_path(output_prefix, fmt)
@@ -191,7 +206,7 @@ async def build_pattern_b(
         method(output=output_base, output_format=fmt, **build_kwargs)
         return output_path
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     result_path = await loop.run_in_executor(None, _sync_build)
     return handler.format_result(result_path, fmt)
 
@@ -220,7 +235,7 @@ async def analyze_pattern_b(
         method = getattr(viz, analysis_method)
         return method(**method_kwargs)
 
-    loop = asyncio.get_event_loop()
+    loop = asyncio.get_running_loop()
     result = await loop.run_in_executor(None, _sync_analyze)
     return json.dumps(result, indent=2, default=str)
 

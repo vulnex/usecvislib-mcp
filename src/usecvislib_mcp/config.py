@@ -118,7 +118,6 @@ def resolve_templates_dir() -> Path:
 
     # Fallback: check common locations
     for candidate in [
-        Path("/Users/conde/vulnex/usecvislib/templates"),
         Path.cwd() / "templates",
     ]:
         if candidate.is_dir():

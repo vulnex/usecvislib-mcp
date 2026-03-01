@@ -28,6 +28,7 @@ from usecvislib import (
     serialize_to_mermaid,
 )
 
+from ..config import get_rate_limiter
 from ..helpers import format_error, temp_config_file
 from ..server import mcp
 
@@ -51,11 +52,12 @@ async def convert_to_mermaid(
         JSON with 'mermaid_source' containing the Mermaid syntax.
     """
     try:
+        get_rate_limiter().check("convert_to_mermaid")
 
         def _sync_convert():
             return serialize_to_mermaid(config, diagram_type=viz_type or None)
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_convert)
         return json.dumps({"mermaid_source": result}, indent=2)
     except (USecVisLibError, Exception) as e:
@@ -76,6 +78,7 @@ async def calculate_cvss_score(vector: str) -> str:
         JSON with score, version, severity, and parsed vector components.
     """
     try:
+        get_rate_limiter().check("calculate_cvss_score")
 
         def _sync_calculate():
             version = detect_cvss_version(vector)
@@ -111,7 +114,7 @@ async def calculate_cvss_score(vector: str) -> str:
                 )
             return result
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_calculate)
         return json.dumps(result, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
@@ -133,6 +136,7 @@ async def detect_config_type(config: dict) -> str:
         JSON with 'type' string and 'confidence' level.
     """
     try:
+        get_rate_limiter().check("detect_config_type")
         detected = "unknown"
         confidence = "low"
 
@@ -205,12 +209,13 @@ async def list_shapes(category: str = "") -> str:
         JSON list of shape information dictionaries.
     """
     try:
+        get_rate_limiter().check("list_shapes")
 
         def _sync_list():
             cd = CustomDiagrams()
             return cd.list_shapes(category=category or None)
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_list)
         return json.dumps(result, indent=2, default=str)
     except (USecVisLibError, Exception) as e:

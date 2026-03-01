@@ -29,7 +29,7 @@ from usecvislib import (
     USecVisLibError,
 )
 
-from ..config import get_output_dir
+from ..config import get_output_dir, get_rate_limiter
 from ..helpers import format_error, temp_config_file
 from ..server import mcp
 
@@ -63,6 +63,7 @@ async def export_data(
         JSON with the exported content or file path.
     """
     try:
+        get_rate_limiter().check("export_data")
 
         def _sync_export():
             fmt = format.lower().strip()
@@ -97,7 +98,7 @@ async def export_data(
             else:
                 return {"error": f"Unsupported format: {fmt}. Use json, csv, yaml, or md."}
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_export)
         return json.dumps(result, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
@@ -127,6 +128,7 @@ async def generate_report(
         JSON mapping format names to output file paths.
     """
     try:
+        get_rate_limiter().check("generate_report")
 
         def _sync_report():
             viz_class = _VIZ_CLASS_MAP.get(viz_type)
@@ -158,7 +160,7 @@ async def generate_report(
                 )
                 return {"report_dir": str(report_dir), "files": result}
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_report)
         return json.dumps(result, indent=2, default=str)
     except (USecVisLibError, Exception) as e:

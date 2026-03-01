@@ -465,7 +465,7 @@ Auth is ignored in `stdio` mode (local pipe — no network exposure).
 
 ## Companion Skill
 
-The **[USecVisLib Skill](https://github.com/vulnex/skill/usecvislib)** is a domain knowledge prompt that teaches AI assistants how to effectively use the MCP tools for security assessments. While the MCP server provides the tools, the Skill provides the expertise.
+The **[USecVisLib Skill](https://github.com/vulnex/usecvislib-skill)** is a domain knowledge prompt that teaches AI assistants how to effectively use the MCP tools for security assessments. While the MCP server provides the tools, the Skill provides the expertise.
 
 | Layer | Role |
 |-------|------|

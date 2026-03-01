@@ -18,7 +18,8 @@ import json
 
 from usecvislib import AttackTreeBuilder, AttackTrees, USecVisLibError
 
-from ..helpers import build_and_analyze, build_visualization, format_error
+from ..config import get_rate_limiter
+from ..helpers import build_and_analyze, build_visualization, format_error, validate_format
 from ..output import OutputHandler
 from ..server import mcp
 
@@ -109,6 +110,8 @@ async def build_attack_tree_from_spec(
         style: Style preset ID.
     """
     try:
+        validate_format(format)
+        get_rate_limiter().check("build_attack_tree_from_spec")
         handler = OutputHandler()
         output_path = handler.make_output_path("attack_tree", format)
 
@@ -134,7 +137,7 @@ async def build_attack_tree_from_spec(
             at.build()
             return output_path
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, _sync_build)
         return handler.format_result(output_path, format)
     except (USecVisLibError, Exception) as e:

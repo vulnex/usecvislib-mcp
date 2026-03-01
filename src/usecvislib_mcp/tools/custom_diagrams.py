@@ -44,6 +44,7 @@ async def generate_custom_diagram(
             "custom_diagram",
             fmt=format,
             build_method="BuildCustomDiagram",
+            styleid=style,
         )
     except (USecVisLibError, Exception) as e:
         return format_error(e)

@@ -18,10 +18,12 @@ import json
 
 from usecvislib import BinVis, USecVisLibError
 
-from ..config import validate_input_path
-from ..helpers import format_error
+from ..config import get_rate_limiter, validate_input_path
+from ..helpers import ALLOWED_IMAGE_FORMATS, format_error, validate_format
 from ..output import OutputHandler
 from ..server import mcp
+
+ALLOWED_BINARY_FORMATS = frozenset({"png", "pdf", "svg"})
 
 
 @mcp.tool()
@@ -39,6 +41,8 @@ async def analyze_binary_entropy(
         format: Output format — png, pdf, or svg.
     """
     try:
+        validate_format(format, ALLOWED_BINARY_FORMATS)
+        get_rate_limiter().check("analyze_binary_entropy")
         validated_path = str(validate_input_path(file_path))
         handler = OutputHandler()
         output_path = handler.make_output_path("binary_entropy", format)
@@ -51,7 +55,7 @@ async def analyze_binary_entropy(
             bv.build("entropy")
             return output_path
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, _sync_build)
         return handler.format_result(output_path, format)
     except (USecVisLibError, ValueError, Exception) as e:
@@ -73,6 +77,8 @@ async def analyze_binary_distribution(
         format: Output format — png, pdf, or svg.
     """
     try:
+        validate_format(format, ALLOWED_BINARY_FORMATS)
+        get_rate_limiter().check("analyze_binary_distribution")
         validated_path = str(validate_input_path(file_path))
         handler = OutputHandler()
         output_path = handler.make_output_path("binary_distribution", format)
@@ -85,7 +91,7 @@ async def analyze_binary_distribution(
             bv.build("distribution")
             return output_path
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, _sync_build)
         return handler.format_result(output_path, format)
     except (USecVisLibError, ValueError, Exception) as e:
@@ -107,6 +113,8 @@ async def analyze_binary_heatmap(
         format: Output format — png, pdf, or svg.
     """
     try:
+        validate_format(format, ALLOWED_BINARY_FORMATS)
+        get_rate_limiter().check("analyze_binary_heatmap")
         validated_path = str(validate_input_path(file_path))
         handler = OutputHandler()
         output_path = handler.make_output_path("binary_heatmap", format)
@@ -119,7 +127,7 @@ async def analyze_binary_heatmap(
             bv.build("heatmap")
             return output_path
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, _sync_build)
         return handler.format_result(output_path, format)
     except (USecVisLibError, ValueError, Exception) as e:
@@ -140,6 +148,8 @@ async def analyze_binary_all(
         format: Output format — png, pdf, or svg.
     """
     try:
+        validate_format(format, ALLOWED_BINARY_FORMATS)
+        get_rate_limiter().check("analyze_binary_all")
         validated_path = str(validate_input_path(file_path))
         handler = OutputHandler()
         output_path = handler.make_output_path("binary_all", format)
@@ -152,7 +162,7 @@ async def analyze_binary_all(
             bv.build("all")
             return output_path
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         await loop.run_in_executor(None, _sync_build)
         return handler.format_result(output_path, format)
     except (USecVisLibError, ValueError, Exception) as e:
@@ -170,6 +180,7 @@ async def get_binary_stats(file_path: str) -> str:
         file_path: Path to the binary file to analyze.
     """
     try:
+        get_rate_limiter().check("get_binary_stats")
         validated_path = str(validate_input_path(file_path))
 
         def _sync_stats():
@@ -177,7 +188,7 @@ async def get_binary_stats(file_path: str) -> str:
             bv.load()
             return bv.get_stats()
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_stats)
         return json.dumps(result, indent=2, default=str)
     except (USecVisLibError, ValueError, Exception) as e:

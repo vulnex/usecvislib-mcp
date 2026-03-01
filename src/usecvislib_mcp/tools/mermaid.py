@@ -17,9 +17,12 @@ import asyncio
 
 from usecvislib import MermaidDiagrams, USecVisLibError
 
-from ..helpers import format_error
+from ..config import get_rate_limiter
+from ..helpers import format_error, validate_format
 from ..output import OutputHandler
 from ..server import mcp
+
+ALLOWED_MERMAID_FORMATS = frozenset({"png", "pdf", "svg"})
 
 
 @mcp.tool()
@@ -45,6 +48,8 @@ async def render_mermaid(
         height: Image height in pixels.
     """
     try:
+        validate_format(format, ALLOWED_MERMAID_FORMATS)
+        get_rate_limiter().check("render_mermaid")
         handler = OutputHandler()
         output_path = handler.make_output_path("mermaid", format)
 
@@ -61,7 +66,7 @@ async def render_mermaid(
             )
             return result.output_path
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result_path = await loop.run_in_executor(None, _sync_render)
         return handler.format_result(result_path, format)
     except (USecVisLibError, Exception) as e:

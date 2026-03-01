@@ -18,6 +18,7 @@ import json
 
 from usecvislib import AttackGraphs, USecVisLibError, compare_files
 
+from ..config import get_rate_limiter
 from ..helpers import build_and_analyze, format_error, temp_config_file
 from ..server import mcp
 
@@ -94,6 +95,7 @@ async def compare_visualizations(
         and detailed list of changes.
     """
     try:
+        get_rate_limiter().check("compare_visualizations")
 
         def _sync_compare():
             with temp_config_file(old_config) as old_path:
@@ -101,7 +103,7 @@ async def compare_visualizations(
                     result = compare_files(old_path, new_path, viz_type)
                     return result.to_dict()
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         result = await loop.run_in_executor(None, _sync_compare)
         return json.dumps(result, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
