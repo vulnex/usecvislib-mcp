@@ -15,7 +15,17 @@
 
 import json
 
+import pytest
 
+from usecvislib_mcp.config import resolve_templates_dir
+
+_has_templates = resolve_templates_dir().is_dir()
+skip_no_templates = pytest.mark.skipif(
+    not _has_templates, reason="Templates directory not available"
+)
+
+
+@skip_no_templates
 def test_list_template_categories():
     """Template categories resource returns valid JSON."""
     from usecvislib_mcp.resources.templates import list_template_categories
@@ -31,6 +41,7 @@ def test_list_template_categories():
         assert "template_count" in cat
 
 
+@skip_no_templates
 def test_list_templates_in_category():
     """Template listing returns templates for a known category."""
     from usecvislib_mcp.resources.templates import list_templates
@@ -41,6 +52,7 @@ def test_list_templates_in_category():
     assert len(result["templates"]) > 0
 
 
+@skip_no_templates
 def test_get_template_content():
     """Getting a specific template returns its content."""
     from usecvislib_mcp.resources.templates import get_template

@@ -52,5 +52,4 @@ and use the tool catalog in REFERENCE.md for function signatures and parameter d
 ## Notes
 
 - Windsurf's Cascade agent uses the same MCP protocol — all 49 tools work identically
-- The `examples/` directory can be referenced directly from the project tree
 - Style IDs, config schemas, and workflows in `SKILL.md` apply without modification

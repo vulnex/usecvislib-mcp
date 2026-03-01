@@ -1,14 +1,40 @@
+# Version control
 .git/
+.gitignore
+
+# Python
 __pycache__/
 *.pyc
+*.pyo
 *.egg-info/
+*.egg
 dist/
 build/
-*.egg
-tests/
+.venv/
+venv/
 .pytest_cache/
-.DS_Store
-.claude/
-.mcp.json
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Environment and secrets
 .env
 .env.*
+*.pem
+*.key
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project files not needed in image
+tests/
+Dockerfile
+Dockerfile.test
+.dockerignore
+.claude/
+.mcp.json
+CHANGELOG.md

@@ -16,6 +16,7 @@
 import asyncio
 import json
 import uuid
+from pathlib import Path
 
 from usecvislib import USecVisLibError, process_batch
 
@@ -26,6 +27,14 @@ from ..server import mcp
 
 MAX_BATCH_CONFIGS = 100
 MAX_BATCH_WORKERS = 8
+ALLOWED_MODULE_TYPES = frozenset({
+    "attack_tree",
+    "attack_graph",
+    "threat_model",
+    "privilege_gradient",
+    "component_diagram",
+    "dependency_graph",
+})
 
 
 @mcp.tool()
@@ -56,6 +65,11 @@ async def batch_process(
     try:
         validate_format(format)
         get_rate_limiter().check("batch_process")
+        if module_type not in ALLOWED_MODULE_TYPES:
+            return format_error(ValueError(
+                f"Unknown module_type: {module_type}. "
+                f"Supported: {sorted(ALLOWED_MODULE_TYPES)}"
+            ))
         if len(configs) > MAX_BATCH_CONFIGS:
             return format_error(ValueError(
                 f"Batch size ({len(configs)}) exceeds maximum ({MAX_BATCH_CONFIGS})"
@@ -92,7 +106,7 @@ async def batch_process(
                 # Clean up temp files
                 for tf in temp_files:
                     try:
-                        __import__("pathlib").Path(tf).unlink(missing_ok=True)
+                        Path(tf).unlink(missing_ok=True)
                     except OSError:
                         pass
 

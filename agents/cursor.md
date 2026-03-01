@@ -53,5 +53,4 @@ and use the tool catalog in REFERENCE.md for function signatures.
 ## Notes
 
 - Cursor's MCP support exposes the same 49 tools with identical function names
-- The `examples/` directory can be referenced directly from the project tree
 - Style IDs, config schemas, and workflows in `SKILL.md` apply without modification

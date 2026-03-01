@@ -63,6 +63,12 @@ def _build_server() -> FastMCP:
                 resource_server_url=None,
                 required_scopes=["usecvislib"],
             )
+        else:
+            logger.warning(
+                "HTTP transport (%s) starting WITHOUT authentication. "
+                "Set USECVISLIB_MCP_API_KEY to enable API key auth.",
+                transport,
+            )
 
     server = FastMCP(**kwargs)
 
