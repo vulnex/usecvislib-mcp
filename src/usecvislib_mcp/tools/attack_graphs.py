@@ -17,7 +17,7 @@ import json
 
 from usecvislib import AttackGraphs, USecVisLibError
 
-from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
+from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call, validate_int_range
 from ..server import mcp
 
 
@@ -60,9 +60,7 @@ async def validate_attack_graph(config: dict) -> str:
     try:
         result = await build_and_analyze(AttackGraphs, config, "validate")
         errors = json.loads(result)
-        return json.dumps(
-            {"valid": len(errors) == 0, "errors": errors}, indent=2, default=str
-        )
+        return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 
@@ -103,6 +101,8 @@ async def find_attack_paths(
         max_depth: Maximum path depth to search.
     """
     try:
+        validate_int_range(max_paths, "max_paths", 1, 100)
+        validate_int_range(max_depth, "max_depth", 1, 100)
         return await build_and_analyze(
             AttackGraphs,
             config,
@@ -132,6 +132,7 @@ async def analyze_critical_nodes(
         top_n: Number of top critical nodes to return.
     """
     try:
+        validate_int_range(top_n, "top_n", 1, 1000)
         return await build_and_analyze(
             AttackGraphs,
             config,

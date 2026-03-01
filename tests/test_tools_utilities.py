@@ -33,9 +33,7 @@ async def test_convert_to_mermaid_with_type(sample_attack_tree_config):
     """convert_to_mermaid works with explicit viz_type."""
     from usecvislib_mcp.tools.utilities import convert_to_mermaid
 
-    result = await convert_to_mermaid(
-        sample_attack_tree_config, viz_type="attack_tree"
-    )
+    result = await convert_to_mermaid(sample_attack_tree_config, viz_type="attack_tree")
     parsed = json.loads(result)
     assert "mermaid_source" in parsed or "error" in parsed
 
@@ -45,9 +43,7 @@ async def test_calculate_cvss_score_v31():
     """calculate_cvss_score parses CVSS 3.1 vector."""
     from usecvislib_mcp.tools.utilities import calculate_cvss_score
 
-    result = await calculate_cvss_score(
-        "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H"
-    )
+    result = await calculate_cvss_score("CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:H/I:H/A:H")
     parsed = json.loads(result)
     assert "score" in parsed or "error" in parsed
     if "score" in parsed:

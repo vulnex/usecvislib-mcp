@@ -80,9 +80,7 @@ async def export_data(
             elif fmt == "csv":
                 output_dir = get_output_dir()
                 output_dir.mkdir(parents=True, exist_ok=True)
-                output_path = str(
-                    output_dir / f"export_{uuid.uuid4().hex}.csv"
-                )
+                output_path = str(output_dir / f"export_{uuid.uuid4().hex}.csv")
                 rows_data = data if isinstance(data, list) else [data]
                 row_count = Exporter.to_csv(rows_data, output=output_path)
                 return {

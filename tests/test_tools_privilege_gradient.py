@@ -26,9 +26,7 @@ async def test_generate_privilege_gradient(sample_privilege_gradient_config):
     """generate_privilege_gradient produces output file."""
     from usecvislib_mcp.tools.privilege_gradient import generate_privilege_gradient
 
-    result = await generate_privilege_gradient(
-        sample_privilege_gradient_config, format="png"
-    )
+    result = await generate_privilege_gradient(sample_privilege_gradient_config, format="png")
     parsed = json.loads(result)
     assert "output_path" in parsed or "error" not in parsed
 

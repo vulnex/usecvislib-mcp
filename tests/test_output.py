@@ -49,9 +49,7 @@ def test_format_result_file_mode_with_metadata(tmp_path):
     test_file = tmp_path / "test.png"
     test_file.write_bytes(b"fake png data")
 
-    result = handler.format_result(
-        str(test_file), "png", metadata={"style": "default"}
-    )
+    result = handler.format_result(str(test_file), "png", metadata={"style": "default"})
     parsed = json.loads(result)
     assert parsed["metadata"] == {"style": "default"}
 

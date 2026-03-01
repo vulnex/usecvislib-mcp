@@ -21,7 +21,7 @@ from ..config import resolve_templates_dir
 from ..server import mcp
 
 # Only allow alphanumeric, hyphens, underscores, and dots in path components
-_SAFE_NAME_RE = re.compile(r'^[a-zA-Z0-9_\-\.]+$')
+_SAFE_NAME_RE = re.compile(r"^[a-zA-Z0-9_\-\.]+$")
 
 
 def _get_templates_dir() -> Path:
@@ -36,7 +36,7 @@ def _validate_path_component(name: str) -> str:
     Raises:
         ValueError: If the name is unsafe.
     """
-    if not name or '..' in name or '/' in name or '\\' in name or '\x00' in name:
+    if not name or ".." in name or "/" in name or "\\" in name or "\x00" in name:
         raise ValueError(f"Invalid path component: {name!r}")
     if not _SAFE_NAME_RE.match(name):
         raise ValueError(f"Invalid characters in path component: {name!r}")
@@ -55,9 +55,7 @@ def _list_categories() -> list[dict]:
                     for f in entry.iterdir()
                     if f.is_file() and f.suffix in (".tml", ".toml", ".json", ".yaml", ".yml")
                 )
-                categories.append(
-                    {"name": entry.name, "template_count": template_count}
-                )
+                categories.append({"name": entry.name, "template_count": template_count})
     return categories
 
 
@@ -90,9 +88,7 @@ def list_template_categories() -> str:
 def list_templates(category: str) -> str:
     """List all templates in a specific category."""
     templates = _list_templates_in_category(category)
-    return json.dumps(
-        {"category": category, "templates": templates}, indent=2
-    )
+    return json.dumps({"category": category, "templates": templates}, indent=2)
 
 
 @mcp.resource("usecvislib://templates/{category}/{name}")

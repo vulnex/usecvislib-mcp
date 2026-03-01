@@ -15,7 +15,6 @@
 
 import os
 import shutil
-import tempfile
 
 import pytest
 
@@ -208,14 +207,13 @@ def has_diagrams_pkg():
     """Check if the 'diagrams' Python package is installed."""
     try:
         import diagrams  # noqa: F401
+
         return True
     except ImportError:
         return False
 
 
-skip_no_graphviz = pytest.mark.skipif(
-    not has_graphviz(), reason="Graphviz (dot) not installed"
-)
+skip_no_graphviz = pytest.mark.skipif(not has_graphviz(), reason="Graphviz (dot) not installed")
 
 skip_no_mermaid = pytest.mark.skipif(
     not has_mermaid_cli(), reason="mermaid-cli (mmdc) not installed"

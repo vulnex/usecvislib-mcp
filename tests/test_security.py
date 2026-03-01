@@ -12,13 +12,11 @@
 
 """Tests for security-critical functions: validate_input_path and RateLimiter."""
 
-import os
 import time
 
 import pytest
 
 from usecvislib_mcp.config import RateLimiter, validate_input_path
-
 
 # ── validate_input_path tests ──────────────────────────────────────
 
@@ -70,9 +68,7 @@ class TestValidateInputPath:
         allowed_dir.mkdir()
         f = allowed_dir / "data.bin"
         f.write_text("binary data")
-        monkeypatch.setenv(
-            "USECVISLIB_MCP_ALLOWED_INPUT_DIRS", str(allowed_dir)
-        )
+        monkeypatch.setenv("USECVISLIB_MCP_ALLOWED_INPUT_DIRS", str(allowed_dir))
         result = validate_input_path(str(f))
         assert result == f.resolve()
 
@@ -82,9 +78,7 @@ class TestValidateInputPath:
         allowed_dir.mkdir()
         outside_file = tmp_path / "outside.txt"
         outside_file.write_text("secret")
-        monkeypatch.setenv(
-            "USECVISLIB_MCP_ALLOWED_INPUT_DIRS", str(allowed_dir)
-        )
+        monkeypatch.setenv("USECVISLIB_MCP_ALLOWED_INPUT_DIRS", str(allowed_dir))
         with pytest.raises(ValueError, match="Access denied"):
             validate_input_path(str(outside_file))
 
@@ -118,9 +112,7 @@ class TestValidateInputPath:
         # Create a file outside the jail
         outside = tmp_path / "secret.txt"
         outside.write_text("secret")
-        monkeypatch.setenv(
-            "USECVISLIB_MCP_ALLOWED_INPUT_DIRS", str(allowed_dir)
-        )
+        monkeypatch.setenv("USECVISLIB_MCP_ALLOWED_INPUT_DIRS", str(allowed_dir))
         # Try traversal
         traversal_path = str(allowed_dir / ".." / "secret.txt")
         with pytest.raises(ValueError, match="Access denied"):

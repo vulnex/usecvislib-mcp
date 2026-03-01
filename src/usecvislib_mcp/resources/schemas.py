@@ -24,13 +24,21 @@ ATTACK_TREE_SCHEMA = {
         "tree": {
             "description": "Tree metadata and settings",
             "fields": {
-                "name": {"type": "string", "required": True, "description": "Name of the attack tree"},
+                "name": {
+                    "type": "string",
+                    "required": True,
+                    "description": "Name of the attack tree",
+                },
                 "root": {"type": "string", "required": True, "description": "ID of the root node"},
                 "description": {"type": "string", "required": False},
                 "params": {
                     "type": "object",
                     "fields": {
-                        "rankdir": {"type": "string", "default": "TB", "values": ["TB", "BT", "LR", "RL"]},
+                        "rankdir": {
+                            "type": "string",
+                            "default": "TB",
+                            "values": ["TB", "BT", "LR", "RL"],
+                        },
                     },
                 },
             },
@@ -41,7 +49,11 @@ ATTACK_TREE_SCHEMA = {
                 "style": {"type": "string", "default": "filled"},
                 "fillcolor": {"type": "string", "description": "Node background color"},
                 "fontcolor": {"type": "string", "default": "white"},
-                "shape": {"type": "string", "default": "rectangle", "values": ["rectangle", "oval", "diamond", "box"]},
+                "shape": {
+                    "type": "string",
+                    "default": "rectangle",
+                    "values": ["rectangle", "oval", "diamond", "box"],
+                },
                 "cvss": {"type": "float", "description": "CVSS numeric score (0.0-10.0)"},
                 "cvss_vector": {"type": "string", "description": "CVSS 3.1 vector string"},
             },
@@ -220,11 +232,27 @@ MERMAID_SCHEMA = {
         "height": {"type": "integer", "default": 600},
     },
     "supported_diagram_types": [
-        "flowchart", "sequenceDiagram", "classDiagram", "erDiagram",
-        "stateDiagram", "gantt", "pie", "mindmap", "timeline",
-        "journey", "quadrantChart", "gitGraph", "sankey-beta",
-        "block-beta", "packet-beta", "kanban", "architecture-beta",
-        "c4Context", "c4Container", "c4Component", "c4Dynamic",
+        "flowchart",
+        "sequenceDiagram",
+        "classDiagram",
+        "erDiagram",
+        "stateDiagram",
+        "gantt",
+        "pie",
+        "mindmap",
+        "timeline",
+        "journey",
+        "quadrantChart",
+        "gitGraph",
+        "sankey-beta",
+        "block-beta",
+        "packet-beta",
+        "kanban",
+        "architecture-beta",
+        "c4Context",
+        "c4Container",
+        "c4Component",
+        "c4Dynamic",
     ],
 }
 
@@ -280,7 +308,11 @@ CLOUD_DIAGRAM_SCHEMA = {
             "description": "Diagram configuration",
             "fields": {
                 "title": {"type": "string", "description": "Diagram title"},
-                "direction": {"type": "string", "default": "TB", "values": ["TB", "BT", "LR", "RL"]},
+                "direction": {
+                    "type": "string",
+                    "default": "TB",
+                    "values": ["TB", "BT", "LR", "RL"],
+                },
                 "outformat": {"type": "string", "default": "png"},
             },
         },
@@ -288,7 +320,11 @@ CLOUD_DIAGRAM_SCHEMA = {
             "type": "list of objects",
             "fields": {
                 "id": {"type": "string", "required": True},
-                "icon": {"type": "string", "required": True, "description": "Provider icon path (e.g. aws.compute.EC2)"},
+                "icon": {
+                    "type": "string",
+                    "required": True,
+                    "description": "Provider icon path (e.g. aws.compute.EC2)",
+                },
                 "label": {"type": "string", "required": True},
                 "cluster_id": {"type": "string", "description": "Optional cluster membership"},
             },
@@ -329,7 +365,11 @@ PRIVILEGE_GRADIENT_SCHEMA = {
             "type": "dict of dicts, keyed by zone ID",
             "value_fields": {
                 "label": {"type": "string", "required": True},
-                "level": {"type": "integer", "required": True, "description": "Trust level (higher = more privileged)"},
+                "level": {
+                    "type": "integer",
+                    "required": True,
+                    "description": "Trust level (higher = more privileged)",
+                },
                 "color": {"type": "string"},
             },
         },
@@ -337,7 +377,11 @@ PRIVILEGE_GRADIENT_SCHEMA = {
             "type": "dict of dicts, keyed by component ID",
             "value_fields": {
                 "label": {"type": "string", "required": True},
-                "zone": {"type": "string", "required": True, "description": "Zone this component belongs to"},
+                "zone": {
+                    "type": "string",
+                    "required": True,
+                    "description": "Zone this component belongs to",
+                },
             },
         },
         "influences": {
@@ -415,7 +459,11 @@ COMPONENT_DIAGRAM_SCHEMA = {
             "type": "dict of dicts, keyed by component ID",
             "value_fields": {
                 "label": {"type": "string", "required": True},
-                "layer": {"type": "string", "required": True, "description": "Layer this component belongs to"},
+                "layer": {
+                    "type": "string",
+                    "required": True,
+                    "description": "Layer this component belongs to",
+                },
                 "type": {"type": "string"},
             },
         },
@@ -446,7 +494,10 @@ DEPENDENCY_GRAPH_SCHEMA = {
             "type": "dict of dicts, keyed by module ID",
             "value_fields": {
                 "label": {"type": "string", "required": True},
-                "sloc": {"type": "integer", "description": "Source lines of code (affects node size)"},
+                "sloc": {
+                    "type": "integer",
+                    "description": "Source lines of code (affects node size)",
+                },
                 "language": {"type": "string"},
             },
         },

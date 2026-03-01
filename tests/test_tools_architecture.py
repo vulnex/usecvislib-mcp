@@ -19,7 +19,6 @@ import pytest
 
 from tests.conftest import skip_no_graphviz
 
-
 # ── Component Diagram Tests ─────────────────────────────────────────
 
 
@@ -29,9 +28,7 @@ async def test_generate_component_diagram(sample_component_diagram_config):
     """generate_component_diagram produces output file."""
     from usecvislib_mcp.tools.architecture import generate_component_diagram
 
-    result = await generate_component_diagram(
-        sample_component_diagram_config, format="png"
-    )
+    result = await generate_component_diagram(sample_component_diagram_config, format="png")
     parsed = json.loads(result)
     assert "output_path" in parsed or "error" not in parsed
 
@@ -77,9 +74,7 @@ async def test_generate_dependency_graph(sample_dependency_graph_config):
     """generate_dependency_graph produces output file."""
     from usecvislib_mcp.tools.architecture import generate_dependency_graph
 
-    result = await generate_dependency_graph(
-        sample_dependency_graph_config, format="png"
-    )
+    result = await generate_dependency_graph(sample_dependency_graph_config, format="png")
     parsed = json.loads(result)
     assert "output_path" in parsed or "error" not in parsed
 

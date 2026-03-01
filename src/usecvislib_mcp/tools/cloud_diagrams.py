@@ -19,7 +19,7 @@ import json
 from usecvislib import CloudDiagrams, USecVisLibError
 
 from ..config import get_rate_limiter
-from ..helpers import analyze_pattern_b, format_error, log_tool_call, validate_format
+from ..helpers import analyze_pattern_b, format_error, log_tool_call, validate_format, validate_int_range
 from ..output import OutputHandler
 from ..server import mcp
 
@@ -78,9 +78,7 @@ async def validate_cloud_diagram(config: dict) -> str:
     try:
         result = await analyze_pattern_b(CloudDiagrams, config, "validate")
         errors = json.loads(result)
-        return json.dumps(
-            {"valid": len(errors) == 0, "errors": errors}, indent=2, default=str
-        )
+        return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 
@@ -115,6 +113,7 @@ async def search_cloud_icons(
         limit: Maximum number of results to return.
     """
     try:
+        validate_int_range(limit, "limit", 1, 500)
         get_rate_limiter().check("search_cloud_icons")
 
         def _sync_search():

@@ -184,7 +184,8 @@ a network topology.
     {"id": "svc_mysql", "label": "MySQL", "host": "dbserver", "port": 3306}
   ],
   "exploits": [
-    {"id": "exp_rce", "label": "Exploit RCE", "preconditions": ["vuln_rce"], "postconditions": ["priv_web_user"]}
+    {"id": "exp_rce", "label": "Exploit RCE",
+     "preconditions": ["vuln_rce"], "postconditions": ["priv_web_user"]}
   ],
   "network_edges": [
     {"from": "attacker", "to": "webserver", "label": "Internet"},

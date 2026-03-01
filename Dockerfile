@@ -18,6 +18,9 @@ USER appuser
 ENV USECVISLIB_MCP_TRANSPORT=streamable-http
 ENV USECVISLIB_MCP_HOST=0.0.0.0
 ENV USECVISLIB_MCP_PORT=8000
+# API key is required for HTTP transport. Set at runtime:
+#   docker run -e USECVISLIB_MCP_API_KEY=your-secret-key ...
+# To run without auth (NOT recommended): -e USECVISLIB_MCP_ALLOW_NO_AUTH=true
 
 EXPOSE 8000
 

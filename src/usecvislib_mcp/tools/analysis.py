@@ -19,7 +19,7 @@ import json
 from usecvislib import AttackGraphs, USecVisLibError, compare_files
 
 from ..config import get_rate_limiter
-from ..helpers import build_and_analyze, format_error, log_tool_call, temp_config_file
+from ..helpers import build_and_analyze, format_error, log_tool_call, temp_config_file, validate_int_range
 from ..server import mcp
 
 
@@ -42,9 +42,8 @@ async def find_chokepoints(
         JSON list of chokepoint nodes with scores.
     """
     try:
-        return await build_and_analyze(
-            AttackGraphs, config, "find_chokepoints", top_n=top_n
-        )
+        validate_int_range(top_n, "top_n", 1, 1000)
+        return await build_and_analyze(AttackGraphs, config, "find_chokepoints", top_n=top_n)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 
@@ -68,9 +67,8 @@ async def analyze_centrality(
         JSON list of nodes with centrality scores.
     """
     try:
-        return await build_and_analyze(
-            AttackGraphs, config, "betweenness_centrality", top_n=top_n
-        )
+        validate_int_range(top_n, "top_n", 1, 1000)
+        return await build_and_analyze(AttackGraphs, config, "betweenness_centrality", top_n=top_n)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 

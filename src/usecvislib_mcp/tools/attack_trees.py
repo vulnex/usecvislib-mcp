@@ -19,7 +19,13 @@ import json
 from usecvislib import AttackTreeBuilder, AttackTrees, USecVisLibError
 
 from ..config import get_rate_limiter
-from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call, validate_format
+from ..helpers import (
+    build_and_analyze,
+    build_visualization,
+    format_error,
+    log_tool_call,
+    validate_format,
+)
 from ..output import OutputHandler
 from ..server import mcp
 
@@ -67,9 +73,7 @@ async def validate_attack_tree(config: dict) -> str:
     try:
         result = await build_and_analyze(AttackTrees, config, "validate")
         errors = json.loads(result)
-        return json.dumps(
-            {"valid": len(errors) == 0, "errors": errors}, indent=2, default=str
-        )
+        return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 
@@ -137,9 +141,7 @@ async def build_attack_tree_from_spec(
                 label = edge.pop("label", "")
                 builder.add_edge(from_node, to_node, label=label, **edge)
 
-            at = builder.to_attack_tree(
-                outputfile=output_base, format=format, styleid=style
-            )
+            at = builder.to_attack_tree(outputfile=output_base, format=format, styleid=style)
             at.build()
             return output_path
 

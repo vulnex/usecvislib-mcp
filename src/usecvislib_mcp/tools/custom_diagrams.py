@@ -13,8 +13,6 @@
 
 """MCP tools for custom diagram generation."""
 
-import json
-
 from usecvislib import CustomDiagrams, USecVisLibError
 
 from ..helpers import analyze_pattern_b, build_pattern_b, format_error, log_tool_call
@@ -65,8 +63,7 @@ async def validate_custom_diagram(config: dict) -> str:
         JSON with validation report including errors and warnings.
     """
     try:
-        return await analyze_pattern_b(CustomDiagrams, config, "validate",
-                                       raise_on_error=False)
+        return await analyze_pattern_b(CustomDiagrams, config, "validate", raise_on_error=False)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 

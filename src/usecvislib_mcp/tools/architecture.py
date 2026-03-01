@@ -20,7 +20,6 @@ from usecvislib import ComponentDiagram, DependencyGraph, USecVisLibError
 from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
 from ..server import mcp
 
-
 # ── Component Diagram Tools ─────────────────────────────────────────
 
 
@@ -64,9 +63,7 @@ async def validate_component_diagram(config: dict) -> str:
     try:
         result = await build_and_analyze(ComponentDiagram, config, "validate")
         errors = json.loads(result)
-        return json.dumps(
-            {"valid": len(errors) == 0, "errors": errors}, indent=2, default=str
-        )
+        return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 
@@ -128,9 +125,7 @@ async def validate_dependency_graph(config: dict) -> str:
     try:
         result = await build_and_analyze(DependencyGraph, config, "validate")
         errors = json.loads(result)
-        return json.dumps(
-            {"valid": len(errors) == 0, "errors": errors}, indent=2, default=str
-        )
+        return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 

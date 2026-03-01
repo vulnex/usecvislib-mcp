@@ -17,10 +17,7 @@ import asyncio
 import json
 
 from usecvislib import (
-    AttackGraphs,
-    AttackTrees,
     CustomDiagrams,
-    ThreatModeling,
     USecVisLibError,
     calculate_cvss_from_vector_unified,
     detect_cvss_version,
@@ -29,7 +26,7 @@ from usecvislib import (
 )
 
 from ..config import get_rate_limiter
-from ..helpers import format_error, log_tool_call, temp_config_file
+from ..helpers import format_error, log_tool_call
 from ..server import mcp
 
 
@@ -85,9 +82,7 @@ async def calculate_cvss_score(vector: str) -> str:
         def _sync_calculate():
             version = detect_cvss_version(vector)
             success_parse, parsed, parse_error = parse_cvss_vector_unified(vector)
-            success_score, score, score_error = calculate_cvss_from_vector_unified(
-                vector
-            )
+            success_score, score, score_error = calculate_cvss_from_vector_unified(vector)
 
             if not success_score:
                 return {"error": score_error or parse_error or "Failed to calculate score"}
@@ -111,9 +106,7 @@ async def calculate_cvss_score(vector: str) -> str:
                 "severity": severity,
             }
             if parsed:
-                result["components"] = (
-                    parsed if isinstance(parsed, dict) else str(parsed)
-                )
+                result["components"] = parsed if isinstance(parsed, dict) else str(parsed)
             return result
 
         loop = asyncio.get_running_loop()
@@ -148,15 +141,11 @@ async def detect_config_type(config: dict) -> str:
             detected = "attack_tree"
             confidence = "high"
         # Attack Graphs: have 'graph' and 'hosts'/'vulnerabilities'
-        elif "graph" in config and (
-            "hosts" in config or "vulnerabilities" in config
-        ):
+        elif "graph" in config and ("hosts" in config or "vulnerabilities" in config):
             detected = "attack_graph"
             confidence = "high"
         # Threat Models: have 'model' and 'processes'/'dataflows'
-        elif "model" in config and (
-            "processes" in config or "dataflows" in config
-        ):
+        elif "model" in config and ("processes" in config or "dataflows" in config):
             detected = "threat_model"
             confidence = "high"
         # Privilege Gradient: have 'gradient' and 'zones'
@@ -164,23 +153,17 @@ async def detect_config_type(config: dict) -> str:
             detected = "privilege_gradient"
             confidence = "high"
         # Component Diagram: have 'diagram' and 'layers'/'components'
-        elif "diagram" in config and (
-            "layers" in config or "components" in config
-        ):
+        elif "diagram" in config and ("layers" in config or "components" in config):
             detected = "component_diagram"
             confidence = "high"
         # Dependency Graph: have 'graph' and 'modules'/'dependencies'
-        elif "graph" in config and (
-            "modules" in config or "dependencies" in config
-        ):
+        elif "graph" in config and ("modules" in config or "dependencies" in config):
             detected = "dependency_graph"
             confidence = "high"
         # Cloud Diagram: have 'config'/'nodes' with 'icon' fields
         elif "nodes" in config:
             nodes = config["nodes"]
-            if isinstance(nodes, list) and any(
-                "icon" in n for n in nodes if isinstance(n, dict)
-            ):
+            if isinstance(nodes, list) and any("icon" in n for n in nodes if isinstance(n, dict)):
                 detected = "cloud_diagram"
                 confidence = "medium"
             else:
@@ -191,9 +174,7 @@ async def detect_config_type(config: dict) -> str:
             detected = "custom_diagram"
             confidence = "low"
 
-        return json.dumps(
-            {"type": detected, "confidence": confidence}, indent=2
-        )
+        return json.dumps({"type": detected, "confidence": confidence}, indent=2)
     except Exception as e:
         return format_error(e)
 

@@ -41,6 +41,34 @@ def validate_format(fmt: str, allowed: frozenset = ALLOWED_IMAGE_FORMATS) -> Non
         raise ValueError(f"Invalid format '{fmt}'. Allowed: {', '.join(sorted(allowed))}")
 
 
+def validate_int_range(
+    value: int, name: str, min_val: int = 1, max_val: int = 1000
+) -> int:
+    """Validate that an integer parameter is within an acceptable range.
+
+    Prevents resource exhaustion from extreme values.
+
+    Args:
+        value: The integer value to validate.
+        name: Parameter name for error messages.
+        min_val: Minimum allowed value (inclusive).
+        max_val: Maximum allowed value (inclusive).
+
+    Returns:
+        The validated value.
+
+    Raises:
+        ValueError: If value is outside the allowed range.
+    """
+    if not isinstance(value, int) or isinstance(value, bool):
+        raise ValueError(f"Parameter '{name}' must be an integer, got {type(value).__name__}")
+    if value < min_val or value > max_val:
+        raise ValueError(
+            f"Parameter '{name}' must be between {min_val} and {max_val}, got {value}"
+        )
+    return value
+
+
 def log_tool_call(func):
     """Decorator that logs tool invocation, duration, and success/failure."""
 
@@ -54,11 +82,20 @@ def log_tool_call(func):
             elapsed = time.monotonic() - start
             # Check if the result indicates an error
             status = "error" if isinstance(result, str) and '"error"' in result[:50] else "ok"
-            logger.info("Tool call finished: %s status=%s duration=%.3fs", tool_name, status, elapsed)
+            logger.info(
+                "Tool call finished: %s status=%s duration=%.3fs",
+                tool_name,
+                status,
+                elapsed,
+            )
             return result
         except Exception:
             elapsed = time.monotonic() - start
-            logger.info("Tool call finished: %s status=exception duration=%.3fs", tool_name, elapsed)
+            logger.info(
+                "Tool call finished: %s status=exception duration=%.3fs",
+                tool_name,
+                elapsed,
+            )
             raise
 
     return wrapper
@@ -66,25 +103,29 @@ def log_tool_call(func):
 
 # Whitelist of methods allowed via dynamic dispatch (getattr)
 # Prevents reflection attacks where arbitrary methods could be invoked
-ALLOWED_ANALYSIS_METHODS = frozenset({
-    "validate",
-    "get_stats",
-    "analyze_stride",
-    "detect_inversions",
-    "analyze_zone_influence",
-    "get_zone_influence_matrix",
-    "find_paths",
-    "find_attack_paths",
-    "analyze_critical_nodes",
-    "find_chokepoints",
-    "betweenness_centrality",
-})
+ALLOWED_ANALYSIS_METHODS = frozenset(
+    {
+        "validate",
+        "get_stats",
+        "analyze_stride",
+        "detect_inversions",
+        "analyze_zone_influence",
+        "get_zone_influence_matrix",
+        "find_paths",
+        "find_attack_paths",
+        "analyze_critical_nodes",
+        "find_chokepoints",
+        "betweenness_centrality",
+    }
+)
 
-ALLOWED_BUILD_METHODS = frozenset({
-    "render",
-    "build",
-    "BuildCustomDiagram",
-})
+ALLOWED_BUILD_METHODS = frozenset(
+    {
+        "render",
+        "build",
+        "BuildCustomDiagram",
+    }
+)
 
 
 @contextmanager
@@ -105,8 +146,7 @@ def temp_config_file(config: dict, suffix: str = ".json"):
 
     if len(content) > get_max_config_size():
         raise ValueError(
-            f"Config size ({len(content)} bytes) exceeds maximum "
-            f"({get_max_config_size()} bytes)"
+            f"Config size ({len(content)} bytes) exceeds maximum ({get_max_config_size()} bytes)"
         )
 
     temp_dir = get_temp_dir()
@@ -179,8 +219,10 @@ async def build_and_analyze(
     get_rate_limiter().check(analysis_method)
 
     if analysis_method not in ALLOWED_ANALYSIS_METHODS:
-        raise ValueError(f"Method '{analysis_method}' is not allowed. "
-                         f"Allowed: {', '.join(sorted(ALLOWED_ANALYSIS_METHODS))}")
+        raise ValueError(
+            f"Method '{analysis_method}' is not allowed. "
+            f"Allowed: {', '.join(sorted(ALLOWED_ANALYSIS_METHODS))}"
+        )
 
     def _sync_analyze():
         with temp_config_file(config) as config_path:
@@ -221,8 +263,10 @@ async def build_pattern_b(
     output_base = str(Path(output_path).with_suffix(""))
 
     if build_method not in ALLOWED_BUILD_METHODS:
-        raise ValueError(f"Build method '{build_method}' is not allowed. "
-                         f"Allowed: {', '.join(sorted(ALLOWED_BUILD_METHODS))}")
+        raise ValueError(
+            f"Build method '{build_method}' is not allowed. "
+            f"Allowed: {', '.join(sorted(ALLOWED_BUILD_METHODS))}"
+        )
 
     def _sync_build():
         viz = viz_class()
@@ -251,8 +295,10 @@ async def analyze_pattern_b(
     get_rate_limiter().check(analysis_method)
 
     if analysis_method not in ALLOWED_ANALYSIS_METHODS:
-        raise ValueError(f"Method '{analysis_method}' is not allowed. "
-                         f"Allowed: {', '.join(sorted(ALLOWED_ANALYSIS_METHODS))}")
+        raise ValueError(
+            f"Method '{analysis_method}' is not allowed. "
+            f"Allowed: {', '.join(sorted(ALLOWED_ANALYSIS_METHODS))}"
+        )
 
     def _sync_analyze():
         viz = viz_class()
@@ -268,9 +314,10 @@ async def analyze_pattern_b(
 def _sanitize_error_message(message: str) -> str:
     """Strip internal file paths and sensitive details from error messages."""
     import re
+
     # Strip absolute file paths (Unix and Windows patterns)
-    sanitized = re.sub(r'(/[\w./-]+/)([\w.-]+)', r'\2', message)
-    sanitized = re.sub(r'([A-Z]:\\[\w.\\-]+\\)([\w.-]+)', r'\2', sanitized)
+    sanitized = re.sub(r"(/[\w./-]+/)([\w.-]+)", r"\2", message)
+    sanitized = re.sub(r"([A-Z]:\\[\w.\\-]+\\)([\w.-]+)", r"\2", sanitized)
     # Strip Python traceback references
     sanitized = re.sub(r'File "[^"]+", line \d+', 'File "<internal>"', sanitized)
     return sanitized

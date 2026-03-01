@@ -20,7 +20,6 @@ import time
 from collections import defaultdict
 from pathlib import Path
 
-
 # Environment variable defaults
 DEFAULTS = {
     "USECVISLIB_MCP_LOG_LEVEL": "INFO",
@@ -32,6 +31,7 @@ DEFAULTS = {
     "USECVISLIB_MCP_HOST": "127.0.0.1",
     "USECVISLIB_MCP_PORT": "8000",
     "USECVISLIB_MCP_API_KEY": "",
+    "USECVISLIB_MCP_OUTPUT_TTL_SECONDS": "3600",
 }
 
 
@@ -84,6 +84,11 @@ def get_default_format() -> str:
     return get_env("USECVISLIB_MCP_DEFAULT_FORMAT")
 
 
+def get_output_ttl_seconds() -> int:
+    """Get max age for output files in seconds. 0 = no cleanup."""
+    return int(get_env("USECVISLIB_MCP_OUTPUT_TTL_SECONDS"))
+
+
 def configure_logging() -> logging.Logger:
     """Configure logging to stderr only (stdout is MCP JSON-RPC)."""
     logger = logging.getLogger("usecvislib_mcp")
@@ -92,9 +97,7 @@ def configure_logging() -> logging.Logger:
     if not logger.handlers:
         handler = logging.StreamHandler(sys.stderr)
         handler.setLevel(get_log_level())
-        formatter = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-        )
+        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
         handler.setFormatter(formatter)
         logger.addHandler(handler)
 
@@ -203,20 +206,17 @@ def validate_input_path(file_path: str) -> Path:
     resolved = Path(file_path).resolve()
 
     if not resolved.exists():
-        raise ValueError(f"File not found: {resolved}")
+        raise ValueError(f"File not found: {resolved.name}")
 
     if not resolved.is_file():
-        raise ValueError(f"Not a regular file: {resolved}")
+        raise ValueError(f"Not a regular file: {resolved.name}")
 
     allowed_dirs = get_allowed_input_dirs()
     if allowed_dirs:
         if not any(
-            resolved == d or str(resolved).startswith(str(d) + os.sep)
-            for d in allowed_dirs
+            resolved == d or str(resolved).startswith(str(d) + os.sep) for d in allowed_dirs
         ):
-            raise ValueError(
-                f"Access denied: {resolved} is outside allowed input directories"
-            )
+            raise ValueError("Access denied: path is outside allowed input directories")
 
     return resolved
 
@@ -247,8 +247,7 @@ class RateLimiter:
 
         if len(self._calls[tool_name]) >= self.max_calls:
             raise ValueError(
-                f"Rate limit exceeded for '{tool_name}': "
-                f"max {self.max_calls} calls/minute"
+                f"Rate limit exceeded for '{tool_name}': max {self.max_calls} calls/minute"
             )
 
         self._calls[tool_name].append(now)

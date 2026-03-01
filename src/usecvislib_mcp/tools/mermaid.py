@@ -18,7 +18,7 @@ import asyncio
 from usecvislib import MermaidDiagrams, USecVisLibError
 
 from ..config import get_rate_limiter
-from ..helpers import format_error, log_tool_call, validate_format
+from ..helpers import format_error, log_tool_call, validate_format, validate_int_range
 from ..output import OutputHandler
 from ..server import mcp
 
@@ -50,6 +50,8 @@ async def render_mermaid(
     """
     try:
         validate_format(format, ALLOWED_MERMAID_FORMATS)
+        validate_int_range(width, "width", 1, 10000)
+        validate_int_range(height, "height", 1, 10000)
         get_rate_limiter().check("render_mermaid")
         handler = OutputHandler()
         output_path = handler.make_output_path("mermaid", format)

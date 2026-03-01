@@ -19,7 +19,7 @@ import json
 from usecvislib import BinVis, USecVisLibError
 
 from ..config import get_rate_limiter, validate_input_path
-from ..helpers import ALLOWED_IMAGE_FORMATS, format_error, log_tool_call, validate_format
+from ..helpers import format_error, log_tool_call, validate_format
 from ..output import OutputHandler
 from ..server import mcp
 

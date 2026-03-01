@@ -61,9 +61,7 @@ async def validate_privilege_gradient(config: dict) -> str:
     try:
         result = await build_and_analyze(PrivilegeGradient, config, "validate")
         errors = json.loads(result)
-        return json.dumps(
-            {"valid": len(errors) == 0, "errors": errors}, indent=2, default=str
-        )
+        return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 
@@ -111,8 +109,6 @@ async def analyze_zone_influence(config: dict) -> str:
         config: Privilege gradient configuration to analyze.
     """
     try:
-        return await build_and_analyze(
-            PrivilegeGradient, config, "get_zone_influence_matrix"
-        )
+        return await build_and_analyze(PrivilegeGradient, config, "get_zone_influence_matrix")
     except (USecVisLibError, Exception) as e:
         return format_error(e)

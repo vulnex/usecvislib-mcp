@@ -14,7 +14,7 @@ authors = [
 ]
 keywords = ["mcp", "security", "visualization", "attack-tree", "threat-modeling"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.10",
@@ -58,7 +58,7 @@ omit = ["tests/*"]
 
 [tool.coverage.report]
 show_missing = true
-fail_under = 50
+fail_under = 75
 
 [tool.ruff]
 target-version = "py310"
@@ -66,3 +66,6 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I"]
+
+[tool.ruff.lint.per-file-ignores]
+"src/usecvislib_mcp/server.py" = ["E402"]

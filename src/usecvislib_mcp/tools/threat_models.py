@@ -20,6 +20,8 @@ from usecvislib import ThreatModeling, USecVisLibError
 from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
 from ..server import mcp
 
+ALLOWED_ENGINES = frozenset({"usecvislib", "pytm"})
+
 
 @mcp.tool()
 @log_tool_call
@@ -41,6 +43,10 @@ async def generate_threat_model(
         engine: Rendering engine — 'usecvislib' or 'pytm'.
     """
     try:
+        if engine not in ALLOWED_ENGINES:
+            raise ValueError(
+                f"Invalid engine '{engine}'. Allowed: {', '.join(sorted(ALLOWED_ENGINES))}"
+            )
         return await build_visualization(
             ThreatModeling,
             config,
@@ -67,9 +73,7 @@ async def validate_threat_model(config: dict) -> str:
     try:
         result = await build_and_analyze(ThreatModeling, config, "validate")
         errors = json.loads(result)
-        return json.dumps(
-            {"valid": len(errors) == 0, "errors": errors}, indent=2, default=str
-        )
+        return json.dumps({"valid": len(errors) == 0, "errors": errors}, indent=2, default=str)
     except (USecVisLibError, Exception) as e:
         return format_error(e)
 

@@ -133,6 +133,5 @@ def test_prompts_registered():
         assert prompt_name in prompt_names, f"Prompt '{prompt_name}' not registered"
 
     assert len(prompt_names) == 6, (
-        f"Expected 6 prompts, found {len(prompt_names)}. "
-        f"Extra: {prompt_names - expected_prompts}"
+        f"Expected 6 prompts, found {len(prompt_names)}. Extra: {prompt_names - expected_prompts}"
     )

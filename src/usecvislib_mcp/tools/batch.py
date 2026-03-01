@@ -21,20 +21,21 @@ from pathlib import Path
 from usecvislib import USecVisLibError, process_batch
 
 from ..config import get_output_dir, get_rate_limiter, get_temp_dir
-from ..helpers import format_error, log_tool_call, validate_format
+from ..helpers import format_error, log_tool_call, validate_format, validate_int_range
 from ..server import mcp
-
 
 MAX_BATCH_CONFIGS = 100
 MAX_BATCH_WORKERS = 8
-ALLOWED_MODULE_TYPES = frozenset({
-    "attack_tree",
-    "attack_graph",
-    "threat_model",
-    "privilege_gradient",
-    "component_diagram",
-    "dependency_graph",
-})
+ALLOWED_MODULE_TYPES = frozenset(
+    {
+        "attack_tree",
+        "attack_graph",
+        "threat_model",
+        "privilege_gradient",
+        "component_diagram",
+        "dependency_graph",
+    }
+)
 
 
 @mcp.tool()
@@ -67,14 +68,16 @@ async def batch_process(
         validate_format(format)
         get_rate_limiter().check("batch_process")
         if module_type not in ALLOWED_MODULE_TYPES:
-            return format_error(ValueError(
-                f"Unknown module_type: {module_type}. "
-                f"Supported: {sorted(ALLOWED_MODULE_TYPES)}"
-            ))
+            return format_error(
+                ValueError(
+                    f"Unknown module_type: {module_type}. Supported: {sorted(ALLOWED_MODULE_TYPES)}"
+                )
+            )
         if len(configs) > MAX_BATCH_CONFIGS:
-            return format_error(ValueError(
-                f"Batch size ({len(configs)}) exceeds maximum ({MAX_BATCH_CONFIGS})"
-            ))
+            return format_error(
+                ValueError(f"Batch size ({len(configs)}) exceeds maximum ({MAX_BATCH_CONFIGS})")
+            )
+        validate_int_range(max_workers, "max_workers", 1, MAX_BATCH_WORKERS)
         max_workers = min(max_workers, MAX_BATCH_WORKERS)
 
         def _sync_batch():
@@ -89,9 +92,7 @@ async def batch_process(
                 # Write each config to a temp file
                 for i, cfg in enumerate(configs):
                     temp_path = temp_dir / f"batch_{batch_id}_{i}.json"
-                    temp_path.write_text(
-                        json.dumps(cfg, indent=2), encoding="utf-8"
-                    )
+                    temp_path.write_text(json.dumps(cfg, indent=2), encoding="utf-8")
                     temp_files.append(str(temp_path))
 
                 result = process_batch(

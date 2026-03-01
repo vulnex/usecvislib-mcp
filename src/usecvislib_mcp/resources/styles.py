@@ -95,6 +95,4 @@ def list_styles_for_type(visualization_type: str) -> str:
         )
 
     styles = _parse_style_ids(models_dir / config_file)
-    return json.dumps(
-        {"visualization_type": visualization_type, "styles": styles}, indent=2
-    )
+    return json.dumps({"visualization_type": visualization_type, "styles": styles}, indent=2)

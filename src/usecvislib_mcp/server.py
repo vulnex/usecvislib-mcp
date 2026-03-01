@@ -13,6 +13,8 @@
 
 """MCP server for USecVisLib security visualization library."""
 
+import os
+
 from mcp.server.fastmcp import FastMCP
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
@@ -51,7 +53,7 @@ def _build_server() -> FastMCP:
         kwargs["port"] = get_port()
         kwargs["stateless_http"] = True
 
-        # API key auth
+        # API key auth — required for HTTP unless explicitly opted out
         api_key = get_api_key()
         if api_key:
             from mcp.server.auth.settings import AuthSettings
@@ -65,6 +67,18 @@ def _build_server() -> FastMCP:
                 required_scopes=["usecvislib"],
             )
         else:
+            allow_no_auth = os.environ.get("USECVISLIB_MCP_ALLOW_NO_AUTH", "").lower() in (
+                "true",
+                "1",
+                "yes",
+            )
+            if not allow_no_auth:
+                raise RuntimeError(
+                    "HTTP transport requires authentication. "
+                    "Set USECVISLIB_MCP_API_KEY to enable API key auth, "
+                    "or set USECVISLIB_MCP_ALLOW_NO_AUTH=true to explicitly "
+                    "run without authentication (NOT recommended for production)."
+                )
             logger.warning(
                 "HTTP transport (%s) starting WITHOUT authentication. "
                 "Set USECVISLIB_MCP_API_KEY to enable API key auth.",
@@ -85,27 +99,30 @@ def _build_server() -> FastMCP:
 mcp = _build_server()
 
 # Import tool modules — they register via @mcp.tool()
-from .tools import attack_graphs  # noqa: E402, F401
-from .tools import attack_trees  # noqa: E402, F401
-from .tools import mermaid  # noqa: E402, F401
-from .tools import threat_models  # noqa: E402, F401
-from .tools import binary_analysis  # noqa: E402, F401
-from .tools import cloud_diagrams  # noqa: E402, F401
-from .tools import privilege_gradient  # noqa: E402, F401
-from .tools import custom_diagrams  # noqa: E402, F401
-from .tools import architecture  # noqa: E402, F401
-from .tools import utilities  # noqa: E402, F401
-from .tools import batch  # noqa: E402, F401
-from .tools import export  # noqa: E402, F401
-from .tools import analysis  # noqa: E402, F401
-
-# Import resource modules — they register via @mcp.resource()
-from .resources import schemas  # noqa: E402, F401
-from .resources import styles  # noqa: E402, F401
-from .resources import templates  # noqa: E402, F401
-
 # Import prompt modules — they register via @mcp.prompt()
 from .prompts import guidance  # noqa: E402, F401
+
+# Import resource modules — they register via @mcp.resource()
+from .resources import (
+    schemas,  # noqa: E402, F401
+    styles,  # noqa: E402, F401
+    templates,  # noqa: E402, F401
+)
+from .tools import (
+    analysis,  # noqa: E402, F401
+    architecture,  # noqa: E402, F401
+    attack_graphs,  # noqa: E402, F401
+    attack_trees,  # noqa: E402, F401
+    batch,  # noqa: E402, F401
+    binary_analysis,  # noqa: E402, F401
+    cloud_diagrams,  # noqa: E402, F401
+    custom_diagrams,  # noqa: E402, F401
+    export,  # noqa: E402, F401
+    mermaid,  # noqa: E402, F401
+    privilege_gradient,  # noqa: E402, F401
+    threat_models,  # noqa: E402, F401
+    utilities,  # noqa: E402, F401
+)
 
 
 def main():
