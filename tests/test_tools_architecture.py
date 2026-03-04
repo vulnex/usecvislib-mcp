@@ -17,11 +17,12 @@ import json
 
 import pytest
 
-from tests.conftest import skip_no_graphviz
+from tests.conftest import skip_no_component_diagram, skip_no_dependency_graph, skip_no_graphviz
 
 # ── Component Diagram Tests ─────────────────────────────────────────
 
 
+@skip_no_component_diagram
 @skip_no_graphviz
 @pytest.mark.asyncio
 async def test_generate_component_diagram(sample_component_diagram_config):
@@ -30,9 +31,10 @@ async def test_generate_component_diagram(sample_component_diagram_config):
 
     result = await generate_component_diagram(sample_component_diagram_config, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
+@skip_no_component_diagram
 @skip_no_graphviz
 @pytest.mark.asyncio
 async def test_validate_component_diagram(sample_component_diagram_config):
@@ -42,8 +44,10 @@ async def test_validate_component_diagram(sample_component_diagram_config):
     result = await validate_component_diagram(sample_component_diagram_config)
     parsed = json.loads(result)
     assert "valid" in parsed
+    assert parsed["valid"] is True
 
 
+@skip_no_component_diagram
 @skip_no_graphviz
 @pytest.mark.asyncio
 async def test_get_component_diagram_stats(sample_component_diagram_config):
@@ -53,8 +57,10 @@ async def test_get_component_diagram_stats(sample_component_diagram_config):
     result = await get_component_diagram_stats(sample_component_diagram_config)
     parsed = json.loads(result)
     assert isinstance(parsed, dict)
+    assert "error" not in parsed
 
 
+@skip_no_component_diagram
 @pytest.mark.asyncio
 async def test_validate_invalid_component_diagram():
     """validate_component_diagram reports errors for invalid config."""
@@ -62,12 +68,16 @@ async def test_validate_invalid_component_diagram():
 
     result = await validate_component_diagram({"invalid": "config"})
     parsed = json.loads(result)
-    assert "valid" in parsed or "error" in parsed
+    if "valid" in parsed:
+        assert parsed["valid"] is False or len(parsed.get("errors", [])) > 0
+    else:
+        assert "error" in parsed
 
 
 # ── Dependency Graph Tests ───────────────────────────────────────────
 
 
+@skip_no_dependency_graph
 @skip_no_graphviz
 @pytest.mark.asyncio
 async def test_generate_dependency_graph(sample_dependency_graph_config):
@@ -76,9 +86,10 @@ async def test_generate_dependency_graph(sample_dependency_graph_config):
 
     result = await generate_dependency_graph(sample_dependency_graph_config, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
+@skip_no_dependency_graph
 @skip_no_graphviz
 @pytest.mark.asyncio
 async def test_validate_dependency_graph(sample_dependency_graph_config):
@@ -88,8 +99,10 @@ async def test_validate_dependency_graph(sample_dependency_graph_config):
     result = await validate_dependency_graph(sample_dependency_graph_config)
     parsed = json.loads(result)
     assert "valid" in parsed
+    assert parsed["valid"] is True
 
 
+@skip_no_dependency_graph
 @skip_no_graphviz
 @pytest.mark.asyncio
 async def test_get_dependency_graph_stats(sample_dependency_graph_config):
@@ -99,8 +112,10 @@ async def test_get_dependency_graph_stats(sample_dependency_graph_config):
     result = await get_dependency_graph_stats(sample_dependency_graph_config)
     parsed = json.loads(result)
     assert isinstance(parsed, dict)
+    assert "error" not in parsed
 
 
+@skip_no_dependency_graph
 @pytest.mark.asyncio
 async def test_validate_invalid_dependency_graph():
     """validate_dependency_graph reports errors for invalid config."""
@@ -108,4 +123,7 @@ async def test_validate_invalid_dependency_graph():
 
     result = await validate_dependency_graph({"invalid": "config"})
     parsed = json.loads(result)
-    assert "valid" in parsed or "error" in parsed
+    if "valid" in parsed:
+        assert parsed["valid"] is False or len(parsed.get("errors", [])) > 0
+    else:
+        assert "error" in parsed

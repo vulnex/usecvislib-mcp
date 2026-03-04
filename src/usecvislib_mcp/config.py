@@ -56,9 +56,7 @@ def _get_int_env(name: str) -> int:
     try:
         return int(raw)
     except (ValueError, TypeError):
-        raise ValueError(
-            f"Environment variable {name} must be an integer, got '{raw}'"
-        ) from None
+        raise ValueError(f"Environment variable {name} must be an integer, got '{raw}'") from None
 
 
 def get_log_level() -> str:
@@ -259,25 +257,27 @@ class RateLimiter:
     def __init__(self, max_calls_per_minute: int = 60):
         self.max_calls = max_calls_per_minute
         self._calls: dict[str, list[float]] = defaultdict(list)
+        self._lock = threading.Lock()
 
     def check(self, tool_name: str) -> None:
         """Check if the call is allowed. Raises ValueError if rate exceeded."""
         if self.max_calls <= 0:
             return  # Unlimited
 
-        now = time.time()
-        window_start = now - 60.0
+        with self._lock:
+            now = time.time()
+            window_start = now - 60.0
 
-        # Clean old entries
-        calls = self._calls[tool_name]
-        self._calls[tool_name] = [t for t in calls if t > window_start]
+            # Clean old entries
+            calls = self._calls[tool_name]
+            self._calls[tool_name] = [t for t in calls if t > window_start]
 
-        if len(self._calls[tool_name]) >= self.max_calls:
-            raise ValueError(
-                f"Rate limit exceeded for '{tool_name}': max {self.max_calls} calls/minute"
-            )
+            if len(self._calls[tool_name]) >= self.max_calls:
+                raise ValueError(
+                    f"Rate limit exceeded for '{tool_name}': max {self.max_calls} calls/minute"
+                )
 
-        self._calls[tool_name].append(now)
+            self._calls[tool_name].append(now)
 
 
 # Global rate limiter instance (initialized lazily, thread-safe)

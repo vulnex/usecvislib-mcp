@@ -28,7 +28,7 @@ async def test_analyze_binary_entropy(sample_binary_file):
 
     result = await analyze_binary_entropy(sample_binary_file, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @skip_no_graphviz
@@ -39,7 +39,7 @@ async def test_analyze_binary_distribution(sample_binary_file):
 
     result = await analyze_binary_distribution(sample_binary_file, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @skip_no_graphviz
@@ -50,7 +50,7 @@ async def test_analyze_binary_heatmap(sample_binary_file):
 
     result = await analyze_binary_heatmap(sample_binary_file, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @skip_no_graphviz
@@ -61,7 +61,7 @@ async def test_analyze_binary_all(sample_binary_file):
 
     result = await analyze_binary_all(sample_binary_file, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @pytest.mark.asyncio
@@ -72,6 +72,7 @@ async def test_get_binary_stats(sample_binary_file):
     result = await get_binary_stats(sample_binary_file)
     parsed = json.loads(result)
     assert isinstance(parsed, dict)
+    assert "error" not in parsed
 
 
 @pytest.mark.asyncio

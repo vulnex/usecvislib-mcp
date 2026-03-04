@@ -21,7 +21,9 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def _mcp_env(tmp_path):
-    """Set up environment variables pointing to temp directories."""
+    """Set up environment variables pointing to temp directories and reset global state."""
+    import usecvislib_mcp.config as _config
+
     output_dir = tmp_path / "output"
     temp_dir = tmp_path / "temp"
     output_dir.mkdir()
@@ -39,7 +41,14 @@ def _mcp_env(tmp_path):
         old_env[key] = os.environ.get(key)
         os.environ[key] = value
 
+    # Reset global rate limiter so tests start with a fresh instance
+    old_rate_limiter = _config._rate_limiter
+    _config._rate_limiter = None
+
     yield
+
+    # Restore rate limiter
+    _config._rate_limiter = old_rate_limiter
 
     for key, old_value in old_env.items():
         if old_value is None:
@@ -222,6 +231,37 @@ skip_no_mermaid = pytest.mark.skipif(
 skip_no_diagrams = pytest.mark.skipif(
     not has_diagrams_pkg() or not has_graphviz(),
     reason="diagrams package or Graphviz not installed",
+)
+
+
+def _can_import(*names):
+    """Check if usecvislib exports the given names."""
+    try:
+        import usecvislib
+
+        return all(hasattr(usecvislib, n) for n in names)
+    except ImportError:
+        return False
+
+
+skip_no_component_diagram = pytest.mark.skipif(
+    not _can_import("ComponentDiagram"),
+    reason="usecvislib.ComponentDiagram not available",
+)
+
+skip_no_privilege_gradient = pytest.mark.skipif(
+    not _can_import("PrivilegeGradient"),
+    reason="usecvislib.PrivilegeGradient not available",
+)
+
+skip_no_dependency_graph = pytest.mark.skipif(
+    not _can_import("DependencyGraph"),
+    reason="usecvislib.DependencyGraph not available",
+)
+
+skip_no_export = pytest.mark.skipif(
+    not _can_import("ComponentDiagram", "DependencyGraph", "PrivilegeGradient"),
+    reason="Export tools require ComponentDiagram, DependencyGraph, and PrivilegeGradient",
 )
 
 

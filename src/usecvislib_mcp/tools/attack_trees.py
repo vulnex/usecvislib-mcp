@@ -26,6 +26,7 @@ from ..helpers import (
     format_error,
     log_tool_call,
     validate_format,
+    validate_int_range,
 )
 from ..output import OutputHandler
 from ..server import mcp
@@ -120,6 +121,8 @@ async def build_attack_tree_from_spec(
     """
     try:
         validate_format(format)
+        validate_int_range(len(nodes), "nodes count", 1, 10000)
+        validate_int_range(len(edges), "edges count", 1, 10000)
         get_rate_limiter().check("build_attack_tree_from_spec")
         handler = OutputHandler()
         output_path = handler.make_output_path("attack_tree", format)

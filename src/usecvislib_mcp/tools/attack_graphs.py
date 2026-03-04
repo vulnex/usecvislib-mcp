@@ -17,7 +17,13 @@ import json
 
 from usecvislib import AttackGraphs
 
-from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call, validate_int_range
+from ..helpers import (
+    build_and_analyze,
+    build_visualization,
+    format_error,
+    log_tool_call,
+    validate_int_range,
+)
 from ..server import mcp
 
 

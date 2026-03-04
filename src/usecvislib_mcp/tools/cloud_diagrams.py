@@ -20,7 +20,13 @@ from pathlib import Path
 from usecvislib import CloudDiagrams
 
 from ..config import get_rate_limiter
-from ..helpers import analyze_pattern_b, format_error, log_tool_call, validate_format, validate_int_range
+from ..helpers import (
+    analyze_pattern_b,
+    format_error,
+    log_tool_call,
+    validate_format,
+    validate_int_range,
+)
 from ..output import OutputHandler
 from ..server import mcp
 

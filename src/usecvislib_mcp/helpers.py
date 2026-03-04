@@ -42,9 +42,20 @@ def validate_format(fmt: str, allowed: frozenset = ALLOWED_IMAGE_FORMATS) -> Non
         raise ValueError(f"Invalid format '{fmt}'. Allowed: {', '.join(sorted(allowed))}")
 
 
-def validate_int_range(
-    value: int, name: str, min_val: int = 1, max_val: int = 1000
-) -> int:
+def validate_config_size(config: dict) -> None:
+    """Check that a config dict does not exceed the max allowed size.
+
+    Used by Pattern B helpers and other tools that bypass temp_config_file().
+    """
+    estimated = len(str(config))
+    max_size = get_max_config_size()
+    if estimated > max_size:
+        raise ValueError(
+            f"Config estimated size ({estimated} bytes) exceeds maximum ({max_size} bytes)"
+        )
+
+
+def validate_int_range(value: int, name: str, min_val: int = 1, max_val: int = 1000) -> int:
     """Validate that an integer parameter is within an acceptable range.
 
     Prevents resource exhaustion from extreme values.
@@ -64,9 +75,7 @@ def validate_int_range(
     if not isinstance(value, int) or isinstance(value, bool):
         raise ValueError(f"Parameter '{name}' must be an integer, got {type(value).__name__}")
     if value < min_val or value > max_val:
-        raise ValueError(
-            f"Parameter '{name}' must be between {min_val} and {max_val}, got {value}"
-        )
+        raise ValueError(f"Parameter '{name}' must be between {min_val} and {max_val}, got {value}")
     return value
 
 
@@ -258,6 +267,7 @@ async def build_pattern_b(
     4. Returns formatted result
     """
     validate_format(fmt)
+    validate_config_size(config)
     get_rate_limiter().check(output_prefix)
     handler = OutputHandler()
     output_path = handler.make_output_path(output_prefix, fmt)
@@ -293,6 +303,7 @@ async def analyze_pattern_b(
     2. Calls analysis method
     3. Returns the analysis result as JSON
     """
+    validate_config_size(config)
     get_rate_limiter().check(analysis_method)
 
     if analysis_method not in ALLOWED_ANALYSIS_METHODS:

@@ -28,7 +28,7 @@ async def test_render_mermaid(sample_mermaid_source):
 
     result = await render_mermaid(sample_mermaid_source, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @skip_no_mermaid
@@ -39,7 +39,7 @@ async def test_render_mermaid_svg(sample_mermaid_source):
 
     result = await render_mermaid(sample_mermaid_source, format="svg")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @pytest.mark.asyncio
@@ -49,5 +49,4 @@ async def test_render_mermaid_invalid_source():
 
     result = await render_mermaid("not valid mermaid syntax !!!")
     parsed = json.loads(result)
-    # Should return error, not crash
-    assert isinstance(parsed, dict)
+    assert "error" in parsed

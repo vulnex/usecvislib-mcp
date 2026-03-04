@@ -27,9 +27,7 @@ from ..server import mcp
 ALLOWED_BINARY_FORMATS = frozenset({"png", "pdf", "svg"})
 
 
-async def _build_binary_viz(
-    file_path: str, build_type: str, output_prefix: str, fmt: str
-):
+async def _build_binary_viz(file_path: str, build_type: str, output_prefix: str, fmt: str):
     """Shared helper for binary visualization tools.
 
     Validates input, creates BinVis, runs the specified build type, and
@@ -95,9 +93,7 @@ async def analyze_binary_distribution(
         format: Output format — png, pdf, or svg.
     """
     try:
-        return await _build_binary_viz(
-            file_path, "distribution", "binary_distribution", format
-        )
+        return await _build_binary_viz(file_path, "distribution", "binary_distribution", format)
     except Exception as e:
         return format_error(e)
 

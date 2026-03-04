@@ -13,8 +13,6 @@
 
 """Tests for config module."""
 
-import os
-
 import pytest
 
 from usecvislib_mcp.config import (
@@ -34,38 +32,36 @@ from usecvislib_mcp.config import (
 )
 
 
-def test_get_env_defaults():
+def test_get_env_defaults(monkeypatch):
     """Environment variables use defaults when unset."""
-    os.environ.pop("USECVISLIB_MCP_TRANSPORT", None)
+    monkeypatch.delenv("USECVISLIB_MCP_TRANSPORT", raising=False)
     assert get_transport() == "stdio"
 
 
-def test_get_env_override():
+def test_get_env_override(monkeypatch):
     """Environment variables can be overridden."""
-    os.environ["USECVISLIB_MCP_TRANSPORT"] = "sse"
+    monkeypatch.setenv("USECVISLIB_MCP_TRANSPORT", "sse")
     assert get_transport() == "sse"
-    os.environ["USECVISLIB_MCP_TRANSPORT"] = "stdio"
 
 
-def test_output_mode_defaults_to_file_for_stdio():
+def test_output_mode_defaults_to_file_for_stdio(monkeypatch):
     """Output mode defaults to 'file' for stdio transport."""
-    os.environ.pop("USECVISLIB_MCP_OUTPUT_MODE", None)
-    os.environ["USECVISLIB_MCP_TRANSPORT"] = "stdio"
+    monkeypatch.delenv("USECVISLIB_MCP_OUTPUT_MODE", raising=False)
+    monkeypatch.setenv("USECVISLIB_MCP_TRANSPORT", "stdio")
     assert get_output_mode() == "file"
 
 
-def test_output_mode_defaults_to_base64_for_sse():
+def test_output_mode_defaults_to_base64_for_sse(monkeypatch):
     """Output mode defaults to 'base64' for sse transport."""
-    os.environ.pop("USECVISLIB_MCP_OUTPUT_MODE", None)
-    os.environ["USECVISLIB_MCP_TRANSPORT"] = "sse"
+    monkeypatch.delenv("USECVISLIB_MCP_OUTPUT_MODE", raising=False)
+    monkeypatch.setenv("USECVISLIB_MCP_TRANSPORT", "sse")
     assert get_output_mode() == "base64"
-    os.environ["USECVISLIB_MCP_TRANSPORT"] = "stdio"
 
 
-def test_output_mode_explicit_override():
+def test_output_mode_explicit_override(monkeypatch):
     """Explicit output mode overrides transport-based default."""
-    os.environ["USECVISLIB_MCP_OUTPUT_MODE"] = "base64"
-    os.environ["USECVISLIB_MCP_TRANSPORT"] = "stdio"
+    monkeypatch.setenv("USECVISLIB_MCP_OUTPUT_MODE", "base64")
+    monkeypatch.setenv("USECVISLIB_MCP_TRANSPORT", "stdio")
     assert get_output_mode() == "base64"
 
 
@@ -74,9 +70,9 @@ def test_get_max_config_size():
     assert get_max_config_size() == 10485760
 
 
-def test_get_default_format():
+def test_get_default_format(monkeypatch):
     """Default format returns 'png'."""
-    os.environ.pop("USECVISLIB_MCP_DEFAULT_FORMAT", None)
+    monkeypatch.delenv("USECVISLIB_MCP_DEFAULT_FORMAT", raising=False)
     assert get_default_format() == "png"
 
 
@@ -112,57 +108,53 @@ def test_resolve_models_dir():
     assert models.is_dir()
 
 
-def test_get_host_default():
+def test_get_host_default(monkeypatch):
     """Host defaults to 127.0.0.1."""
-    os.environ.pop("USECVISLIB_MCP_HOST", None)
+    monkeypatch.delenv("USECVISLIB_MCP_HOST", raising=False)
     assert get_host() == "127.0.0.1"
 
 
-def test_get_host_override():
+def test_get_host_override(monkeypatch):
     """Host can be overridden."""
-    os.environ["USECVISLIB_MCP_HOST"] = "0.0.0.0"
+    monkeypatch.setenv("USECVISLIB_MCP_HOST", "0.0.0.0")
     assert get_host() == "0.0.0.0"
-    os.environ.pop("USECVISLIB_MCP_HOST", None)
 
 
-def test_get_port_default():
+def test_get_port_default(monkeypatch):
     """Port defaults to 8000."""
-    os.environ.pop("USECVISLIB_MCP_PORT", None)
+    monkeypatch.delenv("USECVISLIB_MCP_PORT", raising=False)
     assert get_port() == 8000
 
 
-def test_get_port_override():
+def test_get_port_override(monkeypatch):
     """Port can be overridden."""
-    os.environ["USECVISLIB_MCP_PORT"] = "9000"
+    monkeypatch.setenv("USECVISLIB_MCP_PORT", "9000")
     assert get_port() == 9000
-    os.environ.pop("USECVISLIB_MCP_PORT", None)
 
 
-def test_get_api_key_default():
+def test_get_api_key_default(monkeypatch):
     """API key defaults to empty string."""
-    os.environ.pop("USECVISLIB_MCP_API_KEY", None)
+    monkeypatch.delenv("USECVISLIB_MCP_API_KEY", raising=False)
     assert get_api_key() == ""
 
 
-def test_get_api_key_override():
+def test_get_api_key_override(monkeypatch):
     """API key can be set."""
-    os.environ["USECVISLIB_MCP_API_KEY"] = "my-secret"
+    monkeypatch.setenv("USECVISLIB_MCP_API_KEY", "my-secret")
     assert get_api_key() == "my-secret"
-    os.environ.pop("USECVISLIB_MCP_API_KEY", None)
 
 
-def test_output_mode_defaults_to_base64_for_streamable_http():
+def test_output_mode_defaults_to_base64_for_streamable_http(monkeypatch):
     """Output mode defaults to 'base64' for streamable-http transport."""
-    os.environ.pop("USECVISLIB_MCP_OUTPUT_MODE", None)
-    os.environ["USECVISLIB_MCP_TRANSPORT"] = "streamable-http"
+    monkeypatch.delenv("USECVISLIB_MCP_OUTPUT_MODE", raising=False)
+    monkeypatch.setenv("USECVISLIB_MCP_TRANSPORT", "streamable-http")
     assert get_output_mode() == "base64"
-    os.environ["USECVISLIB_MCP_TRANSPORT"] = "stdio"
 
 
-def test_ensure_directories(tmp_path):
+def test_ensure_directories(tmp_path, monkeypatch):
     """ensure_directories creates output and temp dirs."""
-    os.environ["USECVISLIB_MCP_OUTPUT_DIR"] = str(tmp_path / "new_output")
-    os.environ["USECVISLIB_MCP_TEMP_DIR"] = str(tmp_path / "new_temp")
+    monkeypatch.setenv("USECVISLIB_MCP_OUTPUT_DIR", str(tmp_path / "new_output"))
+    monkeypatch.setenv("USECVISLIB_MCP_TEMP_DIR", str(tmp_path / "new_temp"))
     ensure_directories()
     assert (tmp_path / "new_output").is_dir()
     assert (tmp_path / "new_temp").is_dir()

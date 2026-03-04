@@ -19,7 +19,13 @@ import json
 from usecvislib import AttackGraphs, compare_files
 
 from ..config import get_rate_limiter
-from ..helpers import build_and_analyze, format_error, log_tool_call, temp_config_file, validate_int_range
+from ..helpers import (
+    build_and_analyze,
+    format_error,
+    log_tool_call,
+    temp_config_file,
+    validate_int_range,
+)
 from ..server import mcp
 
 

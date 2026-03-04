@@ -109,21 +109,31 @@ from .resources import (
 )
 
 # Import tool modules — they register via @mcp.tool()
-from .tools import (
-    analysis,  # noqa: F401
-    architecture,  # noqa: F401
-    attack_graphs,  # noqa: F401
-    attack_trees,  # noqa: F401
-    batch,  # noqa: F401
-    binary_analysis,  # noqa: F401
-    cloud_diagrams,  # noqa: F401
-    custom_diagrams,  # noqa: F401
-    export,  # noqa: F401
-    mermaid,  # noqa: F401
-    privilege_gradient,  # noqa: F401
-    threat_models,  # noqa: F401
-    utilities,  # noqa: F401
-)
+# Each import is guarded so a missing usecvislib class only disables
+# the affected tool module, not the entire server.
+_tool_modules = [
+    "analysis",
+    "architecture",
+    "attack_graphs",
+    "attack_trees",
+    "batch",
+    "binary_analysis",
+    "cloud_diagrams",
+    "custom_diagrams",
+    "export",
+    "mermaid",
+    "privilege_gradient",
+    "threat_models",
+    "utilities",
+]
+
+import importlib  # noqa: E402
+
+for _mod_name in _tool_modules:
+    try:
+        importlib.import_module(f".tools.{_mod_name}", package="usecvislib_mcp")
+    except (ImportError, AttributeError) as _err:
+        logger.warning("Tool module '%s' unavailable: %s", _mod_name, _err)
 
 
 def main():

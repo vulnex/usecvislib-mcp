@@ -28,7 +28,7 @@ async def test_generate_attack_tree(sample_attack_tree_config):
 
     result = await generate_attack_tree(sample_attack_tree_config, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @skip_no_graphviz
@@ -40,6 +40,7 @@ async def test_validate_attack_tree(sample_attack_tree_config):
     result = await validate_attack_tree(sample_attack_tree_config)
     parsed = json.loads(result)
     assert "valid" in parsed
+    assert parsed["valid"] is True
 
 
 @skip_no_graphviz
@@ -51,6 +52,7 @@ async def test_get_attack_tree_stats(sample_attack_tree_config):
     result = await get_attack_tree_stats(sample_attack_tree_config)
     parsed = json.loads(result)
     assert isinstance(parsed, dict)
+    assert "error" not in parsed
 
 
 @skip_no_graphviz
@@ -73,7 +75,7 @@ async def test_build_attack_tree_from_spec():
         ],
     )
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @pytest.mark.asyncio
@@ -83,5 +85,7 @@ async def test_validate_invalid_attack_tree():
 
     result = await validate_attack_tree({"invalid": "config"})
     parsed = json.loads(result)
-    # Should either report invalid or return an error
-    assert "valid" in parsed or "error" in parsed
+    if "valid" in parsed:
+        assert parsed["valid"] is False or len(parsed.get("errors", [])) > 0
+    else:
+        assert "error" in parsed

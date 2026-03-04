@@ -29,7 +29,7 @@ from usecvislib import (
 )
 
 from ..config import get_output_dir, get_rate_limiter
-from ..helpers import format_error, log_tool_call, temp_config_file
+from ..helpers import format_error, log_tool_call, temp_config_file, validate_config_size
 from ..server import mcp
 
 # Mapping from viz_type string to Pattern A class
@@ -63,6 +63,10 @@ async def export_data(
         JSON with the exported content or file path.
     """
     try:
+        if isinstance(data, dict):
+            validate_config_size(data)
+        elif isinstance(data, list) and len(str(data)) > 10485760:
+            raise ValueError("Export data size exceeds maximum allowed")
         get_rate_limiter().check("export_data")
 
         def _sync_export():

@@ -17,9 +17,10 @@ import json
 
 import pytest
 
-from tests.conftest import skip_no_graphviz
+from tests.conftest import skip_no_export, skip_no_graphviz
 
 
+@skip_no_export
 @pytest.mark.asyncio
 async def test_export_data_json():
     """export_data returns JSON formatted content."""
@@ -32,6 +33,7 @@ async def test_export_data_json():
     assert "content" in parsed
 
 
+@skip_no_export
 @pytest.mark.asyncio
 async def test_export_data_yaml():
     """export_data returns YAML formatted content."""
@@ -44,6 +46,7 @@ async def test_export_data_yaml():
     assert "content" in parsed
 
 
+@skip_no_export
 @pytest.mark.asyncio
 async def test_export_data_csv():
     """export_data writes CSV to file."""
@@ -60,6 +63,7 @@ async def test_export_data_csv():
     assert parsed["rows_written"] == 2
 
 
+@skip_no_export
 @pytest.mark.asyncio
 async def test_export_data_markdown():
     """export_data returns markdown table."""
@@ -76,6 +80,7 @@ async def test_export_data_markdown():
     assert "|" in parsed["content"]
 
 
+@skip_no_export
 @pytest.mark.asyncio
 async def test_export_data_unsupported_format():
     """export_data returns error for unsupported format."""
@@ -86,6 +91,7 @@ async def test_export_data_unsupported_format():
     assert "error" in parsed
 
 
+@skip_no_export
 @skip_no_graphviz
 @pytest.mark.asyncio
 async def test_generate_report_attack_graph(sample_attack_graph_config):
@@ -103,6 +109,7 @@ async def test_generate_report_attack_graph(sample_attack_graph_config):
         assert "files" in parsed
 
 
+@skip_no_export
 @pytest.mark.asyncio
 async def test_generate_report_invalid_viz_type():
     """generate_report returns error for unknown viz_type."""

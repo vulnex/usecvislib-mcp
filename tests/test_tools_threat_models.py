@@ -28,7 +28,7 @@ async def test_generate_threat_model(sample_threat_model_config):
 
     result = await generate_threat_model(sample_threat_model_config, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @skip_no_graphviz
@@ -40,6 +40,7 @@ async def test_validate_threat_model(sample_threat_model_config):
     result = await validate_threat_model(sample_threat_model_config)
     parsed = json.loads(result)
     assert "valid" in parsed
+    assert parsed["valid"] is True
 
 
 @skip_no_graphviz
@@ -51,6 +52,7 @@ async def test_get_threat_model_stats(sample_threat_model_config):
     result = await get_threat_model_stats(sample_threat_model_config)
     parsed = json.loads(result)
     assert isinstance(parsed, dict)
+    assert "error" not in parsed
 
 
 @skip_no_graphviz
@@ -62,6 +64,7 @@ async def test_analyze_stride_threats(sample_threat_model_config):
     result = await analyze_stride_threats(sample_threat_model_config)
     parsed = json.loads(result)
     assert isinstance(parsed, dict)
+    assert "error" not in parsed
 
 
 @pytest.mark.asyncio
@@ -71,4 +74,7 @@ async def test_validate_invalid_threat_model():
 
     result = await validate_threat_model({"invalid": "config"})
     parsed = json.loads(result)
-    assert "valid" in parsed or "error" in parsed
+    if "valid" in parsed:
+        assert parsed["valid"] is False or len(parsed.get("errors", [])) > 0
+    else:
+        assert "error" in parsed

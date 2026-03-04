@@ -28,7 +28,7 @@ async def test_generate_custom_diagram(sample_custom_diagram_config):
 
     result = await generate_custom_diagram(sample_custom_diagram_config, format="png")
     parsed = json.loads(result)
-    assert "output_path" in parsed or "error" not in parsed
+    assert "output_path" in parsed
 
 
 @skip_no_graphviz
@@ -40,6 +40,7 @@ async def test_validate_custom_diagram(sample_custom_diagram_config):
     result = await validate_custom_diagram(sample_custom_diagram_config)
     parsed = json.loads(result)
     assert isinstance(parsed, dict)
+    assert "error" not in parsed
 
 
 @skip_no_graphviz
@@ -51,6 +52,7 @@ async def test_get_custom_diagram_stats(sample_custom_diagram_config):
     result = await get_custom_diagram_stats(sample_custom_diagram_config)
     parsed = json.loads(result)
     assert isinstance(parsed, dict)
+    assert "error" not in parsed
 
 
 @pytest.mark.asyncio
@@ -61,3 +63,4 @@ async def test_validate_custom_diagram_invalid():
     result = await validate_custom_diagram({"invalid": "config"})
     parsed = json.loads(result)
     assert isinstance(parsed, dict)
+    assert "valid" in parsed or "error" in parsed

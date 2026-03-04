@@ -23,12 +23,13 @@ def test_server_instance_exists():
 
 
 def test_tools_registered():
-    """All 49 tools are registered on the server."""
+    """Core tools are registered on the server; optional tools may be absent."""
     from usecvislib_mcp.server import mcp
 
     tool_names = {t.name for t in mcp._tool_manager.list_tools()}
 
-    expected_tools = {
+    # Core tools that should always be available
+    core_tools = {
         # Attack Trees (4)
         "generate_attack_tree",
         "validate_attack_tree",
@@ -60,24 +61,10 @@ def test_tools_registered():
         "search_cloud_icons",
         "list_cloud_providers",
         "list_cloud_icons",
-        # Privilege Gradient (5)
-        "generate_privilege_gradient",
-        "validate_privilege_gradient",
-        "get_privilege_gradient_stats",
-        "detect_privilege_inversions",
-        "analyze_zone_influence",
         # Custom Diagrams (3)
         "generate_custom_diagram",
         "validate_custom_diagram",
         "get_custom_diagram_stats",
-        # Architecture — Component Diagrams (3)
-        "generate_component_diagram",
-        "validate_component_diagram",
-        "get_component_diagram_stats",
-        # Architecture — Dependency Graphs (3)
-        "generate_dependency_graph",
-        "validate_dependency_graph",
-        "get_dependency_graph_stats",
         # Utilities (4)
         "convert_to_mermaid",
         "calculate_cvss_score",
@@ -85,23 +72,40 @@ def test_tools_registered():
         "list_shapes",
         # Batch (1)
         "batch_process",
-        # Export (2)
-        "export_data",
-        "generate_report",
         # Analysis (3)
         "find_chokepoints",
         "analyze_centrality",
         "compare_visualizations",
     }
 
-    assert len(expected_tools) == 49, f"Expected 49 tools, listed {len(expected_tools)}"
+    # Tools that depend on optional usecvislib classes
+    optional_tools = {
+        # Privilege Gradient (5) — requires PrivilegeGradient
+        "generate_privilege_gradient",
+        "validate_privilege_gradient",
+        "get_privilege_gradient_stats",
+        "detect_privilege_inversions",
+        "analyze_zone_influence",
+        # Architecture (6) — requires ComponentDiagram, DependencyGraph
+        "generate_component_diagram",
+        "validate_component_diagram",
+        "get_component_diagram_stats",
+        "generate_dependency_graph",
+        "validate_dependency_graph",
+        "get_dependency_graph_stats",
+        # Export (2) — requires ComponentDiagram, DependencyGraph, PrivilegeGradient
+        "export_data",
+        "generate_report",
+    }
 
-    for tool_name in expected_tools:
-        assert tool_name in tool_names, f"Tool '{tool_name}' not registered"
+    # Core tools must always be present
+    for tool_name in core_tools:
+        assert tool_name in tool_names, f"Core tool '{tool_name}' not registered"
 
-    assert len(tool_names) == 49, (
-        f"Expected 49 registered tools, found {len(tool_names)}. "
-        f"Extra: {tool_names - expected_tools}"
+    # Total should be core + whatever optional tools loaded
+    loaded_optional = optional_tools & tool_names
+    assert len(tool_names) == len(core_tools) + len(loaded_optional), (
+        f"Unexpected tools registered: {tool_names - core_tools - optional_tools}"
     )
 
 
