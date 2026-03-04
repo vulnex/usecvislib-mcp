@@ -13,6 +13,7 @@
 
 """Configuration and environment variable management for usecvislib-mcp."""
 
+import contextvars
 import logging
 import os
 import sys
@@ -21,6 +22,11 @@ import threading
 import time
 from collections import defaultdict
 from pathlib import Path
+
+# Context variable for per-request client identification (set by middleware)
+current_client_id: contextvars.ContextVar[str] = contextvars.ContextVar(
+    "current_client_id", default=""
+)
 
 # Build user-scoped default directories to avoid predictable shared paths.
 # On Unix, includes UID; on Windows, tempfile.gettempdir() is already per-user.
@@ -42,6 +48,8 @@ DEFAULTS = {
     "USECVISLIB_MCP_PORT": "8000",
     "USECVISLIB_MCP_API_KEY": "",
     "USECVISLIB_MCP_OUTPUT_TTL_SECONDS": "3600",
+    "USECVISLIB_MCP_ISSUER_URL": "https://localhost",
+    "USECVISLIB_MCP_TOOL_TIMEOUT": "300",
 }
 
 
@@ -106,6 +114,16 @@ def get_default_format() -> str:
 def get_output_ttl_seconds() -> int:
     """Get max age for output files in seconds. 0 = no cleanup."""
     return _get_int_env("USECVISLIB_MCP_OUTPUT_TTL_SECONDS")
+
+
+def get_issuer_url() -> str:
+    """Get OAuth/OIDC issuer URL for HTTP auth settings."""
+    return get_env("USECVISLIB_MCP_ISSUER_URL")
+
+
+def get_tool_timeout() -> int:
+    """Get max seconds a tool execution may run before being cancelled. 0 = no timeout."""
+    return _get_int_env("USECVISLIB_MCP_TOOL_TIMEOUT")
 
 
 def configure_logging() -> logging.Logger:
@@ -252,32 +270,47 @@ def get_rate_limit() -> int:
 
 
 class RateLimiter:
-    """Simple in-memory per-tool rate limiter using a sliding window."""
+    """In-memory rate limiter using a sliding window.
+
+    Supports both per-tool (global) and per-client+tool buckets.
+    When a client_id is provided, rate limits are enforced independently
+    per client, preventing one aggressive client from exhausting the
+    budget for all others in multi-tenant HTTP deployments.
+    """
 
     def __init__(self, max_calls_per_minute: int = 60):
         self.max_calls = max_calls_per_minute
         self._calls: dict[str, list[float]] = defaultdict(list)
         self._lock = threading.Lock()
 
-    def check(self, tool_name: str) -> None:
-        """Check if the call is allowed. Raises ValueError if rate exceeded."""
+    def check(self, tool_name: str, client_id: str = "") -> None:
+        """Check if the call is allowed. Raises ValueError if rate exceeded.
+
+        Args:
+            tool_name: Name of the tool being invoked.
+            client_id: Optional client identifier (e.g. IP address).
+                       When provided, rate limits are per client+tool.
+        """
         if self.max_calls <= 0:
             return  # Unlimited
+
+        # Use composite key for per-client isolation
+        bucket_key = f"{client_id}:{tool_name}" if client_id else tool_name
 
         with self._lock:
             now = time.time()
             window_start = now - 60.0
 
             # Clean old entries
-            calls = self._calls[tool_name]
-            self._calls[tool_name] = [t for t in calls if t > window_start]
+            calls = self._calls[bucket_key]
+            self._calls[bucket_key] = [t for t in calls if t > window_start]
 
-            if len(self._calls[tool_name]) >= self.max_calls:
+            if len(self._calls[bucket_key]) >= self.max_calls:
                 raise ValueError(
                     f"Rate limit exceeded for '{tool_name}': max {self.max_calls} calls/minute"
                 )
 
-            self._calls[tool_name].append(now)
+            self._calls[bucket_key].append(now)
 
 
 # Global rate limiter instance (initialized lazily, thread-safe)

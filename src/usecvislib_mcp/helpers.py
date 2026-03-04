@@ -27,10 +27,44 @@ from contextlib import contextmanager
 from pathlib import Path
 from typing import Any
 
-from .config import get_max_config_size, get_rate_limiter, get_temp_dir
+from .config import (
+    current_client_id,
+    get_max_config_size,
+    get_rate_limiter,
+    get_temp_dir,
+    get_tool_timeout,
+)
 from .output import OutputHandler
 
 logger = logging.getLogger("usecvislib_mcp")
+
+
+def check_rate_limit(tool_name: str) -> None:
+    """Check rate limit with per-client context when available."""
+    get_rate_limiter().check(tool_name, client_id=current_client_id.get())
+
+
+async def run_with_timeout(sync_fn, timeout: int | None = None) -> Any:
+    """Run a sync function in an executor with an optional timeout.
+
+    Args:
+        sync_fn: Synchronous callable to run in the default executor.
+        timeout: Max seconds to wait. Uses USECVISLIB_MCP_TOOL_TIMEOUT if None.
+                 0 means no timeout.
+
+    Raises:
+        TimeoutError: If the operation exceeds the timeout.
+    """
+    if timeout is None:
+        timeout = get_tool_timeout()
+
+    loop = asyncio.get_running_loop()
+    future = loop.run_in_executor(None, sync_fn)
+
+    if timeout > 0:
+        return await asyncio.wait_for(future, timeout=timeout)
+    return await future
+
 
 # Allowed output formats for image generation
 ALLOWED_IMAGE_FORMATS = frozenset({"png", "pdf", "svg", "dot"})
@@ -101,8 +135,8 @@ def log_tool_call(func):
             return result
         except Exception:
             elapsed = time.monotonic() - start
-            logger.info(
-                "Tool call finished: %s status=exception duration=%.3fs",
+            logger.exception(
+                "Tool call failed: %s duration=%.3fs",
                 tool_name,
                 elapsed,
             )
@@ -190,7 +224,7 @@ async def build_visualization(
     5. Returns formatted result via OutputHandler
     """
     validate_format(fmt)
-    get_rate_limiter().check(output_prefix)
+    check_rate_limit(output_prefix)
     handler = OutputHandler()
     output_path = handler.make_output_path(output_prefix, fmt)
     # Output path for graphviz: strip extension, the library adds it
@@ -209,8 +243,7 @@ async def build_visualization(
             viz.build()
         return output_path
 
-    loop = asyncio.get_running_loop()
-    result_path = await loop.run_in_executor(None, _sync_build)
+    result_path = await run_with_timeout(_sync_build)
     return handler.format_result(result_path, fmt)
 
 
@@ -226,7 +259,7 @@ async def build_and_analyze(
     2. Calls viz.load() then getattr(viz, analysis_method)(**kwargs)
     3. Returns the analysis result as JSON
     """
-    get_rate_limiter().check(analysis_method)
+    check_rate_limit(analysis_method)
 
     if analysis_method not in ALLOWED_ANALYSIS_METHODS:
         raise ValueError(
@@ -246,8 +279,7 @@ async def build_and_analyze(
             method = getattr(viz, analysis_method)
             return method(**method_kwargs)
 
-    loop = asyncio.get_running_loop()
-    result = await loop.run_in_executor(None, _sync_analyze)
+    result = await run_with_timeout(_sync_analyze)
     return json.dumps(result, indent=2, default=str)
 
 
@@ -268,7 +300,7 @@ async def build_pattern_b(
     """
     validate_format(fmt)
     validate_config_size(config)
-    get_rate_limiter().check(output_prefix)
+    check_rate_limit(output_prefix)
     handler = OutputHandler()
     output_path = handler.make_output_path(output_prefix, fmt)
     output_base = str(Path(output_path).with_suffix(""))
@@ -286,8 +318,7 @@ async def build_pattern_b(
         method(output=output_base, output_format=fmt, **build_kwargs)
         return output_path
 
-    loop = asyncio.get_running_loop()
-    result_path = await loop.run_in_executor(None, _sync_build)
+    result_path = await run_with_timeout(_sync_build)
     return handler.format_result(result_path, fmt)
 
 
@@ -304,7 +335,7 @@ async def analyze_pattern_b(
     3. Returns the analysis result as JSON
     """
     validate_config_size(config)
-    get_rate_limiter().check(analysis_method)
+    check_rate_limit(analysis_method)
 
     if analysis_method not in ALLOWED_ANALYSIS_METHODS:
         raise ValueError(
@@ -318,8 +349,7 @@ async def analyze_pattern_b(
         method = getattr(viz, analysis_method)
         return method(**method_kwargs)
 
-    loop = asyncio.get_running_loop()
-    result = await loop.run_in_executor(None, _sync_analyze)
+    result = await run_with_timeout(_sync_analyze)
     return json.dumps(result, indent=2, default=str)
 
 

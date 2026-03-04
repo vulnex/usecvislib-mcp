@@ -50,7 +50,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y graphviz
 
       - name: Install usecvislib from GitHub
-        run: pip install "usecvislib @ git+https://github.com/vulnex/usecvislib.git"
+        run: pip install "usecvislib @ git+https://github.com/vulnex/usecvislib.git@v0.3.4"
 
       - name: Install dependencies
         run: pip install -e ".[dev]"

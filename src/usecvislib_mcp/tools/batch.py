@@ -13,15 +13,21 @@
 
 """MCP tool for batch processing multiple visualizations."""
 
-import asyncio
 import json
 import uuid
 from pathlib import Path
 
 from usecvislib import process_batch
 
-from ..config import get_output_dir, get_rate_limiter, get_temp_dir
-from ..helpers import format_error, log_tool_call, validate_format, validate_int_range
+from ..config import get_output_dir, get_temp_dir
+from ..helpers import (
+    check_rate_limit,
+    format_error,
+    log_tool_call,
+    run_with_timeout,
+    validate_format,
+    validate_int_range,
+)
 from ..server import mcp
 
 MAX_BATCH_CONFIGS = 100
@@ -66,7 +72,7 @@ async def batch_process(
     """
     try:
         validate_format(format)
-        get_rate_limiter().check("batch_process")
+        check_rate_limit("batch_process")
         if module_type not in ALLOWED_MODULE_TYPES:
             return format_error(
                 ValueError(
@@ -112,8 +118,7 @@ async def batch_process(
                     except OSError:
                         pass
 
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, _sync_batch)
+        result = await run_with_timeout(_sync_batch)
         return json.dumps(result, indent=2, default=str)
     except Exception as e:
         return format_error(e)

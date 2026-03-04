@@ -13,17 +13,17 @@
 
 """MCP tools for cloud architecture diagram generation."""
 
-import asyncio
 import json
 from pathlib import Path
 
 from usecvislib import CloudDiagrams
 
-from ..config import get_rate_limiter
 from ..helpers import (
     analyze_pattern_b,
+    check_rate_limit,
     format_error,
     log_tool_call,
+    run_with_timeout,
     validate_format,
     validate_int_range,
 )
@@ -49,7 +49,7 @@ async def generate_cloud_diagram(
     """
     try:
         validate_format(format)
-        get_rate_limiter().check("generate_cloud_diagram")
+        check_rate_limit("generate_cloud_diagram")
         handler = OutputHandler()
         output_path = handler.make_output_path("cloud_diagram", format)
 
@@ -60,8 +60,7 @@ async def generate_cloud_diagram(
             cd.render(output=output_base, format=format)
             return output_path
 
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, _sync_render)
+        await run_with_timeout(_sync_render)
         return handler.format_result(output_path, format)
     except Exception as e:
         return format_error(e)
@@ -119,13 +118,12 @@ async def search_cloud_icons(
     """
     try:
         validate_int_range(limit, "limit", 1, 500)
-        get_rate_limiter().check("search_cloud_icons")
+        check_rate_limit("search_cloud_icons")
 
         def _sync_search():
             return CloudDiagrams.search_icons(query, limit)
 
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, _sync_search)
+        result = await run_with_timeout(_sync_search)
         return json.dumps(result, indent=2, default=str)
     except Exception as e:
         return format_error(e)
@@ -143,13 +141,12 @@ async def list_cloud_providers() -> str:
         JSON list of provider dictionaries with 'id' and 'name'.
     """
     try:
-        get_rate_limiter().check("list_cloud_providers")
+        check_rate_limit("list_cloud_providers")
 
         def _sync_list():
             return CloudDiagrams.list_providers()
 
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, _sync_list)
+        result = await run_with_timeout(_sync_list)
         return json.dumps(result, indent=2, default=str)
     except Exception as e:
         return format_error(e)
@@ -174,13 +171,12 @@ async def list_cloud_icons(
         JSON list of icon dictionaries with id, path, name, category.
     """
     try:
-        get_rate_limiter().check("list_cloud_icons")
+        check_rate_limit("list_cloud_icons")
 
         def _sync_list():
             return CloudDiagrams.list_icons(provider, category or None)
 
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, _sync_list)
+        result = await run_with_timeout(_sync_list)
         return json.dumps(result, indent=2, default=str)
     except Exception as e:
         return format_error(e)

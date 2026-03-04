@@ -13,12 +13,17 @@
 
 """MCP tool for rendering Mermaid diagrams."""
 
-import asyncio
-
 from usecvislib import MermaidDiagrams
 
-from ..config import get_max_config_size, get_rate_limiter
-from ..helpers import format_error, log_tool_call, validate_format, validate_int_range
+from ..config import get_max_config_size
+from ..helpers import (
+    check_rate_limit,
+    format_error,
+    log_tool_call,
+    run_with_timeout,
+    validate_format,
+    validate_int_range,
+)
 from ..output import OutputHandler
 from ..server import mcp
 
@@ -57,7 +62,7 @@ async def render_mermaid(
                 f"Mermaid source size ({len(source)} bytes) exceeds "
                 f"maximum ({get_max_config_size()} bytes)"
             )
-        get_rate_limiter().check("render_mermaid")
+        check_rate_limit("render_mermaid")
         handler = OutputHandler()
         output_path = handler.make_output_path("mermaid", format)
 
@@ -74,8 +79,7 @@ async def render_mermaid(
             )
             return result.output_path
 
-        loop = asyncio.get_running_loop()
-        result_path = await loop.run_in_executor(None, _sync_render)
+        result_path = await run_with_timeout(_sync_render)
         return handler.format_result(result_path, format)
     except Exception as e:
         return format_error(e)

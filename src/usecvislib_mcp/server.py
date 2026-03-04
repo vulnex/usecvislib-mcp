@@ -21,9 +21,11 @@ from starlette.responses import JSONResponse, Response
 
 from .config import (
     configure_logging,
+    current_client_id,
     ensure_directories,
     get_api_key,
     get_host,
+    get_issuer_url,
     get_port,
     get_transport,
     warn_if_unrestricted_http,
@@ -62,7 +64,7 @@ def _build_server() -> FastMCP:
 
             kwargs["token_verifier"] = ApiKeyVerifier(api_key)
             kwargs["auth"] = AuthSettings(
-                issuer_url="https://localhost",
+                issuer_url=get_issuer_url(),
                 resource_server_url=None,
                 required_scopes=["usecvislib"],
             )
@@ -91,6 +93,21 @@ def _build_server() -> FastMCP:
     @server.custom_route("/health", methods=["GET"])
     async def health_check(request: Request) -> Response:
         return JSONResponse({"status": "ok"})
+
+    # Middleware to set per-client context for rate limiting in HTTP mode
+    if transport in ("sse", "streamable-http"):
+        from starlette.middleware.base import BaseHTTPMiddleware
+
+        class ClientIdMiddleware(BaseHTTPMiddleware):
+            async def dispatch(self, request: Request, call_next):
+                client_ip = request.client.host if request.client else "unknown"
+                token = current_client_id.set(client_ip)
+                try:
+                    return await call_next(request)
+                finally:
+                    current_client_id.reset(token)
+
+        server._app.add_middleware(ClientIdMiddleware)
 
     return server
 

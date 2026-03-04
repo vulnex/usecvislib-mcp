@@ -13,14 +13,19 @@
 
 """MCP tools for binary file visualization and analysis."""
 
-import asyncio
 import json
 from pathlib import Path
 
 from usecvislib import BinVis
 
-from ..config import get_rate_limiter, validate_input_path
-from ..helpers import format_error, log_tool_call, validate_format
+from ..config import validate_input_path
+from ..helpers import (
+    check_rate_limit,
+    format_error,
+    log_tool_call,
+    run_with_timeout,
+    validate_format,
+)
 from ..output import OutputHandler
 from ..server import mcp
 
@@ -40,7 +45,7 @@ async def _build_binary_viz(file_path: str, build_type: str, output_prefix: str,
         fmt: Output format — png, pdf, or svg.
     """
     validate_format(fmt, ALLOWED_BINARY_FORMATS)
-    get_rate_limiter().check(output_prefix)
+    check_rate_limit(output_prefix)
     validated_path = str(validate_input_path(file_path))
     handler = OutputHandler()
     output_path = handler.make_output_path(output_prefix, fmt)
@@ -51,8 +56,7 @@ async def _build_binary_viz(file_path: str, build_type: str, output_prefix: str,
         bv.build(build_type)
         return output_path
 
-    loop = asyncio.get_running_loop()
-    await loop.run_in_executor(None, _sync_build)
+    await run_with_timeout(_sync_build)
     return handler.format_result(output_path, fmt)
 
 
@@ -151,7 +155,7 @@ async def get_binary_stats(file_path: str) -> str:
         file_path: Path to the binary file to analyze.
     """
     try:
-        get_rate_limiter().check("get_binary_stats")
+        check_rate_limit("get_binary_stats")
         validated_path = str(validate_input_path(file_path))
 
         def _sync_stats():
@@ -159,8 +163,7 @@ async def get_binary_stats(file_path: str) -> str:
             bv.load()
             return bv.get_stats()
 
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, _sync_stats)
+        result = await run_with_timeout(_sync_stats)
         return json.dumps(result, indent=2, default=str)
     except Exception as e:
         return format_error(e)

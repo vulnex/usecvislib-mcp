@@ -13,18 +13,18 @@
 
 """MCP tools for attack tree visualization and analysis."""
 
-import asyncio
 import json
 from pathlib import Path
 
 from usecvislib import AttackTreeBuilder, AttackTrees
 
-from ..config import get_rate_limiter
 from ..helpers import (
     build_and_analyze,
     build_visualization,
+    check_rate_limit,
     format_error,
     log_tool_call,
+    run_with_timeout,
     validate_format,
     validate_int_range,
 )
@@ -123,7 +123,7 @@ async def build_attack_tree_from_spec(
         validate_format(format)
         validate_int_range(len(nodes), "nodes count", 1, 10000)
         validate_int_range(len(edges), "edges count", 1, 10000)
-        get_rate_limiter().check("build_attack_tree_from_spec")
+        check_rate_limit("build_attack_tree_from_spec")
         handler = OutputHandler()
         output_path = handler.make_output_path("attack_tree", format)
 
@@ -147,8 +147,7 @@ async def build_attack_tree_from_spec(
             at.build()
             return output_path
 
-        loop = asyncio.get_running_loop()
-        await loop.run_in_executor(None, _sync_build)
+        await run_with_timeout(_sync_build)
         return handler.format_result(output_path, format)
     except Exception as e:
         return format_error(e)

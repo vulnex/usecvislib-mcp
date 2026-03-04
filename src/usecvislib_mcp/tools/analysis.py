@@ -13,16 +13,16 @@
 
 """MCP tools for advanced cross-module analysis."""
 
-import asyncio
 import json
 
 from usecvislib import AttackGraphs, compare_files
 
-from ..config import get_rate_limiter
 from ..helpers import (
     build_and_analyze,
+    check_rate_limit,
     format_error,
     log_tool_call,
+    run_with_timeout,
     temp_config_file,
     validate_int_range,
 )
@@ -102,7 +102,7 @@ async def compare_visualizations(
         and detailed list of changes.
     """
     try:
-        get_rate_limiter().check("compare_visualizations")
+        check_rate_limit("compare_visualizations")
 
         def _sync_compare():
             with temp_config_file(old_config) as old_path:
@@ -110,8 +110,7 @@ async def compare_visualizations(
                     result = compare_files(old_path, new_path, viz_type)
                     return result.to_dict()
 
-        loop = asyncio.get_running_loop()
-        result = await loop.run_in_executor(None, _sync_compare)
+        result = await run_with_timeout(_sync_compare)
         return json.dumps(result, indent=2, default=str)
     except Exception as e:
         return format_error(e)
