@@ -79,3 +79,33 @@ async def test_batch_process_invalid_module_type():
     )
     parsed = json.loads(result)
     assert "error" in parsed
+
+
+@skip_no_graphviz
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "module_type,fixture",
+    [
+        ("privilege_gradient", "sample_privilege_gradient_config"),
+        ("component_diagram", "sample_component_diagram_config"),
+        ("dependency_graph", "sample_dependency_graph_config"),
+        ("kill_chain", "sample_kill_chain_config"),
+        ("incident_timeline", "sample_timeline_config"),
+        ("vuln_tree", "sample_vuln_tree_config"),
+        ("maestro", "sample_maestro_config"),
+    ],
+)
+async def test_batch_process_every_module_type(request, module_type, fixture):
+    """Every allowed module type renders (needs usecvislib with the extended batch processor)."""
+    from usecvislib import BatchProcessor
+
+    from usecvislib_mcp.tools.batch import batch_process
+
+    if module_type not in BatchProcessor._get_modules():
+        pytest.skip(f"installed usecvislib cannot batch-process {module_type}")
+    parsed = json.loads(
+        await batch_process(module_type=module_type, configs=[request.getfixturevalue(fixture)])
+    )
+    assert "error" not in parsed, parsed
+    assert parsed["failures"] == {}, parsed
+    assert len(parsed["successes"]) == 1

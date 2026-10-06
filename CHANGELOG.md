@@ -29,6 +29,8 @@ Requires usecvislib 0.6.0.
 - `generate_custom_diagram` failed on every call: it passed `styleid` to `BuildCustomDiagram()`, which takes no style. The style is now applied through the diagram settings.
 - Component diagram and dependency graph schema resources documented an outdated config format (`diagram`/`graph` sections, dicts of layers and components). They now match what usecvislib reads (`title`, a list of layers with nested components, a list of modules), so configs written from the schema render.
 - Component diagram and dependency graph tools defaulted to style IDs that do not exist (`comp_default`, `dep_default`); they now default to `cd_default` and `dg_default`.
+- `batch_process` advertised `privilege_gradient`, `component_diagram` and `dependency_graph`, which the usecvislib batch processor rejected. With the extended batch processor in usecvislib it now handles those plus `kill_chain`, `incident_timeline`, `vuln_tree` and `maestro`.
+- Component diagram schema: lists the valid component types and the `bidirectional` connection style.
 
 ## [0.4.0] - 2026-03-01
 

@@ -40,6 +40,10 @@ ALLOWED_MODULE_TYPES = frozenset(
         "privilege_gradient",
         "component_diagram",
         "dependency_graph",
+        "kill_chain",
+        "incident_timeline",
+        "vuln_tree",
+        "maestro",
     }
 )
 
@@ -61,7 +65,8 @@ async def batch_process(
     Args:
         module_type: Visualization type — 'attack_tree', 'attack_graph',
                      'threat_model', 'privilege_gradient', 'component_diagram',
-                     or 'dependency_graph'.
+                     'dependency_graph', 'kill_chain', 'incident_timeline',
+                     'vuln_tree', or 'maestro'.
         configs: List of configuration dictionaries to process (max 100).
         format: Output format — png, pdf, svg, or dot.
         style: Style ID to apply (empty string for default).
