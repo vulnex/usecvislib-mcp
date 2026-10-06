@@ -160,6 +160,10 @@ ALLOWED_ANALYSIS_METHODS = frozenset(
         "analyze_critical_nodes",
         "find_chokepoints",
         "betweenness_centrality",
+        "analyze_coverage_gaps",
+        "to_stride",
+        "to_attack_graph",
+        "to_privilege_gradient",
     }
 )
 
@@ -207,12 +211,44 @@ def temp_config_file(config: dict, suffix: str = ".json"):
             logger.warning("Failed to clean up temp file: %s", temp_path)
 
 
+RENDER_ENGINES = frozenset({"graphviz", "svg"})
+
+
+def resolve_render_options(
+    viz_class, styleid: str, fmt: str, render_engine: str, shine: bool
+) -> tuple[str, dict]:
+    """Validate render_engine/shine and return (styleid, extra viz kwargs).
+
+    With render_engine="svg", the module's Graphviz default preset (the tool's
+    default ``style`` value) becomes "" so the library picks its sv_* default.
+    """
+    if render_engine not in RENDER_ENGINES:
+        raise ValueError(
+            f"Invalid render_engine '{render_engine}'. Allowed: {', '.join(sorted(RENDER_ENGINES))}"
+        )
+    if shine and (fmt != "svg" or render_engine != "graphviz"):
+        raise ValueError(
+            "shine post-processes Graphviz SVG: use format='svg' with render_engine='graphviz'"
+        )
+    if render_engine == "graphviz":
+        return styleid, {}
+    if fmt == "dot":
+        raise ValueError(
+            "Format 'dot' is Graphviz-only; use png, pdf or svg with render_engine='svg'"
+        )
+    if styleid == getattr(viz_class, "DEFAULT_STYLE_ID", None):
+        styleid = ""
+    return styleid, {"render_engine": "svg"}
+
+
 async def build_visualization(
     viz_class,
     config: dict,
     output_prefix: str,
     fmt: str = "png",
     styleid: str = "",
+    render_engine: str = "graphviz",
+    shine: bool = False,
     **viz_kwargs,
 ) -> Any:
     """Build a visualization using Pattern A classes (AttackTrees, AttackGraphs, etc.).
@@ -221,9 +257,11 @@ async def build_visualization(
     2. Creates temp config file from dict
     3. Creates unique output path
     4. Runs viz_class(inputfile, outputfile, format, styleid).build() in executor
-    5. Returns formatted result via OutputHandler
+    5. Applies the shine post-processing when requested
+    6. Returns formatted result via OutputHandler
     """
     validate_format(fmt)
+    styleid, engine_kwargs = resolve_render_options(viz_class, styleid, fmt, render_engine, shine)
     check_rate_limit(output_prefix)
     handler = OutputHandler()
     output_path = handler.make_output_path(output_prefix, fmt)
@@ -238,9 +276,14 @@ async def build_visualization(
                 format=fmt,
                 styleid=styleid,
                 validate_paths=False,
+                **engine_kwargs,
                 **viz_kwargs,
             )
             viz.build()
+        if shine:
+            from usecvislib.svgengine import apply_shine_file
+
+            apply_shine_file(output_path)
         return output_path
 
     result_path = await run_with_timeout(_sync_build)
@@ -289,14 +332,16 @@ async def build_pattern_b(
     output_prefix: str,
     fmt: str = "png",
     build_method: str = "render",
+    style: str = "",
     **build_kwargs,
 ) -> Any:
     """Build a visualization using Pattern B classes (CloudDiagrams, CustomDiagrams).
 
     1. Creates OutputHandler and unique output path
     2. Instantiates viz_class(), calls .load_from_string(json.dumps(config), "json")
-    3. Calls the build/render method with output path
-    4. Returns formatted result
+    3. Applies ``style`` through the loaded settings (the build methods take no style)
+    4. Calls the build/render method with output path
+    5. Returns formatted result
     """
     validate_format(fmt)
     validate_config_size(config)
@@ -314,6 +359,8 @@ async def build_pattern_b(
     def _sync_build():
         viz = viz_class()
         viz.load_from_string(json.dumps(config), "json")
+        if style and getattr(viz, "settings", None) is not None:
+            viz.settings.style = style
         method = getattr(viz, build_method)
         method(output=output_base, output_format=fmt, **build_kwargs)
         return output_path

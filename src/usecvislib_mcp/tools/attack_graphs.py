@@ -33,6 +33,8 @@ async def generate_attack_graph(
     config: dict,
     format: str = "png",
     style: str = "ag_default",
+    render_engine: str = "graphviz",
+    shine: bool = False,
 ):
     """Generate an attack graph visualization from a configuration dictionary.
 
@@ -43,10 +45,20 @@ async def generate_attack_graph(
         config: Attack graph configuration dict.
         format: Output format — png, pdf, svg, or dot.
         style: Style preset ID (e.g. ag_default).
+        render_engine: graphviz (default) or svg (the stdlib SVG engine: interactive,
+               self-contained SVG; png/pdf via cairosvg; sv_* style presets).
+        shine: Post-process Graphviz SVG output with the shine pack (fonts, shadows,
+               hover). Requires format='svg' and render_engine='graphviz'.
     """
     try:
         return await build_visualization(
-            AttackGraphs, config, "attack_graph", fmt=format, styleid=style
+            AttackGraphs,
+            config,
+            "attack_graph",
+            fmt=format,
+            styleid=style,
+            render_engine=render_engine,
+            shine=shine,
         )
     except Exception as e:
         return format_error(e)

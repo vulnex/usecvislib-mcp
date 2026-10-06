@@ -199,9 +199,10 @@ def test_component_diagram_schema():
     result = json.loads(get_component_diagram_schema())
     assert "description" in result
     assert "sections" in result
-    assert "layers" in result["sections"]
-    assert "components" in result["sections"]
+    assert "title" in result["sections"]
     assert "connections" in result["sections"]
+    # Components are nested in their layer, as the library reads them
+    assert "components" in result["sections"]["layers"]["fields"]
 
 
 def test_dependency_graph_schema():
@@ -213,3 +214,54 @@ def test_dependency_graph_schema():
     assert "sections" in result
     assert "modules" in result["sections"]
     assert "dependencies" in result["sections"]
+
+
+@pytest.mark.parametrize(
+    "getter,sections",
+    [
+        ("get_kill_chain_schema", {"killchain", "techniques", "incidents"}),
+        ("get_incident_timeline_schema", {"incident", "events", "phases"}),
+        ("get_vuln_tree_schema", {"vulntree", "dependencies"}),
+        (
+            "get_maestro_schema",
+            {"meta", "architecture", "agents", "assets", "threats", "mitigations"},
+        ),
+    ],
+)
+def test_new_module_schemas(getter, sections):
+    """Kill chain, timeline, vuln tree and MAESTRO schema resources return valid JSON."""
+    from usecvislib_mcp.resources import schemas
+
+    result = json.loads(getattr(schemas, getter)())
+    assert "description" in result
+    assert sections <= set(result["sections"])
+    assert "usecvislib-gallery" in result["render_engine"]
+
+
+def test_maestro_schema_layers_match_catalog():
+    """The documented layer IDs are the ones the MAESTRO catalog uses."""
+    from usecvislib_mcp.config import resolve_models_dir
+    from usecvislib_mcp.resources.schemas import MAESTRO_SCHEMA
+
+    catalog = json.loads(
+        (resolve_models_dir() / "maestro_catalog.json").read_text(encoding="utf-8")
+    )
+    assert MAESTRO_SCHEMA["layers"] == list(catalog["layers"])
+
+
+@pytest.mark.parametrize(
+    "viz_type,preset",
+    [
+        ("kill-chain", "kc_default"),
+        ("incident-timeline", "tl_default"),
+        ("vuln-tree", "vt_default"),
+        ("maestro", "ma_default"),
+    ],
+)
+def test_new_module_styles(viz_type, preset):
+    """Style presets for the new modules are listed, including the sv_* SVG-engine presets."""
+    from usecvislib_mcp.resources.styles import list_styles_for_type
+
+    styles = json.loads(list_styles_for_type(viz_type))["styles"]
+    assert preset in styles
+    assert "sv_default" in styles

@@ -347,3 +347,136 @@ Supports AWS, GCP, Azure, and other providers with native icons.
 - Edge labels should describe the protocol and whether traffic is encrypted.
 - Use the diagram alongside a threat model for comprehensive security review.
 """
+
+
+@mcp.prompt()
+def create_kill_chain() -> str:
+    """Step-by-step guide for mapping an attack onto a kill chain / MITRE ATT&CK."""
+    return """# Mapping an Attack onto a Kill Chain with USecVisLib
+
+## Overview
+A kill chain view places techniques in phase columns and colors them by
+detection and mitigation coverage, so gaps in the defense stand out.
+
+## Step-by-Step Process
+
+1. **Pick the framework**: `kill_chain` (Lockheed Martin's 7 phases),
+   `attack` (MITRE ATT&CK tactics), or `custom` with your own `phases` list.
+2. **Add techniques** keyed by ID (e.g. T1566.001) with `name`, `phase`,
+   `severity`, and whether each is `detected` and `mitigated`.
+3. **Add incidents** (optional): an ordered list of technique IDs per incident
+   draws the attack path across the phases.
+4. **Validate**: `validate_kill_chain` reports unknown phases and bad references.
+5. **Find the gaps**: `analyze_kill_chain_coverage` lists undetected,
+   unmitigated and critical-gap techniques; `get_kill_chain_stats` gives
+   coverage percentages.
+6. **Render**: `generate_kill_chain` (style kc_coverage emphasizes gaps;
+   render_engine="svg" gives an interactive SVG).
+
+## Tips
+- Schema: resource `usecvislib://schemas/kill-chain`.
+- Mark a technique detected only if an alert would actually fire today.
+- Rendered examples: https://vulnex.github.io/usecvislib-gallery/#kill-chain
+"""
+
+
+@mcp.prompt()
+def create_incident_timeline() -> str:
+    """Step-by-step guide for building an incident response timeline."""
+    return """# Building an Incident Timeline with USecVisLib
+
+## Overview
+An incident timeline lays out what happened, when, and who saw it, with
+response-phase bands that yield time-to-detect/contain/recover metrics.
+
+## Step-by-Step Process
+
+1. **Incident metadata**: `incident` section with name, id, analyst.
+2. **Events**: one per observation with an ISO-8601 `timestamp`, `title`,
+   `severity` (critical, high, medium, low, info) and a `lane` (actor or system).
+   Add `duration` for activity that lasted, `technique` for ATT&CK IDs and
+   `source` for the detection source.
+3. **Phases**: Detection, Containment, Eradication, Recovery bands with
+   start/end times. Phase names containing "detect", "contain" and
+   "recover"/"eradicat"/"resolution" drive the response metrics.
+4. **Validate**: `validate_incident_timeline` flags bad timestamps and phases.
+5. **Metrics**: `get_incident_timeline_stats` returns time_to_detect,
+   time_to_contain and time_to_resolve (first event to the end of each phase)
+   and the severity breakdown.
+6. **Render**: `generate_incident_timeline` with mode swimlane (lanes),
+   gantt (overlap), vertical (report-friendly) or compact (dense).
+
+## Tips
+- Schema: resource `usecvislib://schemas/incident-timeline`.
+- Keep lanes to 3-6 actors or systems; more lanes get hard to read.
+- Rendered examples: https://vulnex.github.io/usecvislib-gallery/#incident-timeline
+"""
+
+
+@mcp.prompt()
+def analyze_supply_chain() -> str:
+    """Step-by-step guide for a vulnerability dependency tree (SCA) review."""
+    return """# Supply-Chain Review with a Vulnerability Dependency Tree
+
+## Overview
+A vulnerability dependency tree shows which packages pull in vulnerable
+transitive dependencies, how severe they are, and which root packages are
+exposed.
+
+## Step-by-Step Process
+
+1. **Describe the tree**: `vulntree` section (name, root_packages) and
+   `dependencies` keyed by package ID with name, version, `direct`, and the
+   list of package IDs it depends on.
+2. **Attach CVEs** to the affected packages: id, severity, cvss,
+   `fixed_version`, `exploited` (known exploited) and cwe. SCA output from
+   tools like OSV-Scanner, Grype or npm audit maps directly onto these fields.
+3. **Validate**: `validate_vuln_tree` catches dangling dependency references.
+4. **Prioritize**: `get_vuln_tree_stats` returns exposed roots (impact
+   propagation), exploited CVEs, max CVSS and the fixed versions to upgrade to.
+5. **Render**: `generate_vuln_tree` with mode tree (everything),
+   vulnerable_only (paths to any CVE) or critical_path (paths to high and
+   critical CVEs only, best for reports).
+
+## Tips
+- Schema: resource `usecvislib://schemas/vuln-tree`.
+- Fix exploited CVEs on direct dependencies first; they need no transitive upgrade.
+- Rendered examples: https://vulnex.github.io/usecvislib-gallery/#vulnerability-tree
+"""
+
+
+@mcp.prompt()
+def create_maestro_threat_model() -> str:
+    """Step-by-step guide for threat modeling an agentic AI system with MAESTRO."""
+    return """# Threat Modeling an Agentic AI System with MAESTRO
+
+## Overview
+MAESTRO (Cloud Security Alliance) maps an agentic AI system onto 7 layers:
+foundation-models, data-operations, agent-frameworks, infrastructure,
+observability, security, agent-ecosystem. USecVisLib ships a catalog of
+layer and cross-layer threats tagged with MITRE ATT&CK, OWASP and NIST AI RMF.
+
+## Step-by-Step Process
+
+1. **Meta and patterns**: `meta` (name, owner) and `architecture.patterns`
+   (e.g. single-agent, multi-agent, task-oriented); patterns add
+   pattern-specific threats.
+2. **Agents**: id, name, type, autonomy, the `layers` each one touches, and
+   its tools.
+3. **Assets**: data stores and models with `layer` and `sensitivity`.
+4. **Catalog**: `catalog.mode = "auto"` populates threats; override them in
+   `threats` (target agent, severity, status, mitigations).
+5. **Mitigations**: id, name, layer, preventive or detective, implemented.
+6. **Validate and review**: `validate_maestro_threat_model`, then
+   `get_maestro_stats` for unmitigated threats by layer and severity.
+7. **Render**: `generate_maestro_threat_model` with view layered (the 7-layer
+   stack), graph (agents and cross-layer attack chains; also with
+   render_engine="svg") or heatmap (layer x severity).
+8. **Hand off**: `export_maestro` converts the model to a STRIDE threat model,
+   an attack graph or a privilege gradient config for the matching tools.
+
+## Tips
+- Schema: resource `usecvislib://schemas/maestro`.
+- Start small (one agent, its tools and data) and add agents one at a time.
+- Rendered examples: https://vulnex.github.io/usecvislib-gallery/#maestro
+"""

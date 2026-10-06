@@ -259,6 +259,26 @@ skip_no_dependency_graph = pytest.mark.skipif(
     reason="usecvislib.DependencyGraph not available",
 )
 
+skip_no_kill_chain = pytest.mark.skipif(
+    not _can_import("KillChain"),
+    reason="usecvislib.KillChain not available",
+)
+
+skip_no_timeline = pytest.mark.skipif(
+    not _can_import("IncidentTimeline"),
+    reason="usecvislib.IncidentTimeline not available",
+)
+
+skip_no_vuln_tree = pytest.mark.skipif(
+    not _can_import("VulnDependencyTree"),
+    reason="usecvislib.VulnDependencyTree not available",
+)
+
+skip_no_maestro = pytest.mark.skipif(
+    not _can_import("MaestroThreatModel"),
+    reason="usecvislib.MaestroThreatModel not available",
+)
+
 skip_no_export = pytest.mark.skipif(
     not _can_import("ComponentDiagram", "DependencyGraph", "PrivilegeGradient"),
     reason="Export tools require ComponentDiagram, DependencyGraph, and PrivilegeGradient",
@@ -352,23 +372,27 @@ def sample_custom_diagram_config():
 def sample_component_diagram_config():
     """Minimal valid component diagram config."""
     return {
-        "diagram": {
-            "name": "Test Component Diagram",
-            "description": "Test architecture layers",
-        },
-        "layers": {
-            "presentation": {"label": "Presentation Layer", "order": 1, "color": "#3498db"},
-            "business": {"label": "Business Layer", "order": 2, "color": "#2ecc71"},
-            "data": {"label": "Data Layer", "order": 3, "color": "#e74c3c"},
-        },
-        "components": {
-            "ui": {"label": "Web UI", "layer": "presentation"},
-            "api": {"label": "REST API", "layer": "business"},
-            "db": {"label": "PostgreSQL", "layer": "data"},
-        },
+        "title": "Test Component Diagram",
+        "layers": [
+            {
+                "name": "Presentation",
+                "order": 1,
+                "components": [{"id": "ui", "name": "Web UI", "type": "frontend"}],
+            },
+            {
+                "name": "Business",
+                "order": 2,
+                "components": [{"id": "api", "name": "REST API", "type": "service"}],
+            },
+            {
+                "name": "Data",
+                "order": 3,
+                "components": [{"id": "db", "name": "PostgreSQL", "type": "database"}],
+            },
+        ],
         "connections": [
-            {"from": "ui", "to": "api", "label": "HTTP"},
-            {"from": "api", "to": "db", "label": "SQL"},
+            {"from": "ui", "to": "api", "label": "HTTP", "style": "sync"},
+            {"from": "api", "to": "db", "label": "SQL", "style": "sync"},
         ],
     }
 
@@ -377,18 +401,15 @@ def sample_component_diagram_config():
 def sample_dependency_graph_config():
     """Minimal valid dependency graph config."""
     return {
-        "graph": {
-            "name": "Test Dependency Graph",
-            "description": "Test module dependencies",
-        },
-        "modules": {
-            "core": {"label": "Core", "sloc": 500, "language": "python"},
-            "api": {"label": "API", "sloc": 300, "language": "python"},
-            "utils": {"label": "Utils", "sloc": 100, "language": "python"},
-        },
+        "title": "Test Dependency Graph",
+        "modules": [
+            {"id": "core", "name": "Core", "group": "app", "sloc": 500},
+            {"id": "api", "name": "API", "group": "app", "sloc": 300},
+            {"id": "utils", "name": "Utils", "group": "lib", "sloc": 100},
+        ],
         "dependencies": [
-            {"from": "api", "to": "core", "label": "imports", "type": "import"},
-            {"from": "core", "to": "utils", "label": "imports", "type": "import"},
+            {"from": "api", "to": "core", "type": "import"},
+            {"from": "core", "to": "utils", "type": "import"},
         ],
     }
 
@@ -408,3 +429,128 @@ def sample_binary_file(tmp_path):
     binary_path = tmp_path / "test_binary.bin"
     binary_path.write_bytes(data)
     return str(binary_path)
+
+
+@pytest.fixture
+def sample_kill_chain_config():
+    """Minimal valid kill chain config on a custom phase axis."""
+    return {
+        "killchain": {
+            "name": "Test Kill Chain",
+            "framework": "custom",
+            "phases": ["Access", "Collection", "Exfiltration"],
+        },
+        "techniques": {
+            "T1": {
+                "name": "Valid Accounts",
+                "phase": "Access",
+                "severity": "high",
+                "detected": True,
+            },
+            "T2": {"name": "Bulk Collection", "phase": "Collection", "severity": "medium"},
+            "T3": {
+                "name": "Cloud Upload",
+                "phase": "Exfiltration",
+                "severity": "critical",
+                "detected": True,
+                "mitigated": True,
+            },
+        },
+        "incidents": [{"id": "INC-1", "name": "Test Incident", "techniques": ["T1", "T2", "T3"]}],
+    }
+
+
+@pytest.fixture
+def sample_timeline_config():
+    """Minimal valid incident timeline config with detection/containment phases."""
+    return {
+        "incident": {"name": "Test Incident", "id": "INC-1"},
+        "phases": [
+            {"name": "Detection", "start": "2026-02-03T14:00:00Z", "end": "2026-02-03T14:30:00Z"},
+            {"name": "Containment", "start": "2026-02-03T14:30:00Z", "end": "2026-02-03T15:00:00Z"},
+        ],
+        "events": [
+            {
+                "id": "E1",
+                "timestamp": "2026-02-03T13:10:00Z",
+                "title": "Phishing link clicked",
+                "severity": "high",
+                "lane": "User",
+                "technique": "T1566.002",
+            },
+            {
+                "id": "E2",
+                "timestamp": "2026-02-03T14:05:00Z",
+                "title": "Alert raised",
+                "severity": "medium",
+                "lane": "SOC",
+            },
+            {
+                "id": "E3",
+                "timestamp": "2026-02-03T14:45:00Z",
+                "title": "Session revoked",
+                "severity": "low",
+                "lane": "SOC",
+            },
+        ],
+    }
+
+
+@pytest.fixture
+def sample_vuln_tree_config():
+    """Minimal valid vulnerability tree: app -> lib -> vulnerable transitive dep."""
+    return {
+        "vulntree": {"name": "Test Vuln Tree", "root_packages": ["app"]},
+        "dependencies": {
+            "app": {
+                "name": "app",
+                "version": "1.0.0",
+                "direct": True,
+                "dependencies": ["lib", "clean"],
+            },
+            "lib": {"name": "lib", "version": "2.0.0", "direct": True, "dependencies": ["core"]},
+            "clean": {"name": "clean", "version": "0.1.0", "direct": True, "dependencies": []},
+            "core": {
+                "name": "core",
+                "version": "2.14.1",
+                "dependencies": [],
+                "vulnerabilities": [
+                    {
+                        "id": "CVE-2021-44228",
+                        "severity": "critical",
+                        "cvss": 10.0,
+                        "fixed_version": "2.17.1",
+                        "exploited": True,
+                    }
+                ],
+            },
+        },
+    }
+
+
+@pytest.fixture
+def sample_maestro_config():
+    """Minimal valid MAESTRO config: one RAG agent with catalog auto-population."""
+    return {
+        "meta": {"name": "Test Agent System", "owner": "Security Team"},
+        "architecture": {"patterns": ["single-agent", "task-oriented"]},
+        "agents": [
+            {
+                "id": "support_agent",
+                "name": "Support Agent",
+                "type": "task-oriented",
+                "autonomy": "reactive",
+                "layers": ["foundation-models", "data-operations", "agent-frameworks"],
+                "tools": ["kb-retrieval"],
+            }
+        ],
+        "assets": [
+            {
+                "id": "kb",
+                "name": "Knowledge Base",
+                "layer": "data-operations",
+                "sensitivity": "medium",
+            }
+        ],
+        "catalog": {"mode": "auto"},
+    }

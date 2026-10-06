@@ -34,7 +34,7 @@ Add to your Windsurf MCP config (`~/.codeium/windsurf/mcp_config.json`):
 }
 ```
 
-Restart Windsurf after saving. The 49 tools will appear in Cascade's tool list.
+Restart Windsurf after saving. The 63 tools will appear in Cascade's tool list.
 
 ## Loading Skill Knowledge
 
@@ -51,5 +51,5 @@ and use the tool catalog in REFERENCE.md for function signatures and parameter d
 
 ## Notes
 
-- Windsurf's Cascade agent uses the same MCP protocol — all 49 tools work identically
+- Windsurf's Cascade agent uses the same MCP protocol — all 63 tools work identically
 - Style IDs, config schemas, and workflows in `SKILL.md` apply without modification

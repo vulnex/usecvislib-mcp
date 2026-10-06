@@ -34,7 +34,7 @@ Add to your project-level `.cursor/mcp.json` (or global `~/.cursor/mcp.json`):
 }
 ```
 
-Restart Cursor after saving. The 49 tools will appear in Cursor's tool list.
+Restart Cursor after saving. The 63 tools will appear in Cursor's tool list.
 
 ## Loading Skill Knowledge
 
@@ -52,5 +52,5 @@ and use the tool catalog in REFERENCE.md for function signatures.
 
 ## Notes
 
-- Cursor's MCP support exposes the same 49 tools with identical function names
+- Cursor's MCP support exposes the same 63 tools with identical function names
 - Style IDs, config schemas, and workflows in `SKILL.md` apply without modification

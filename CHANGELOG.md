@@ -5,6 +5,31 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - Unreleased
+
+Requires usecvislib 0.6.0.
+
+### Added
+- 14 tools for the usecvislib 0.5/0.6 modules (63 tools in total):
+  - Kill chain / MITRE ATT&CK: `generate_kill_chain`, `validate_kill_chain`, `get_kill_chain_stats`, `analyze_kill_chain_coverage`
+  - Incident timeline: `generate_incident_timeline` (swimlane, gantt, vertical, compact), `validate_incident_timeline`, `get_incident_timeline_stats`
+  - Vulnerability dependency tree: `generate_vuln_tree` (tree, vulnerable_only, critical_path), `validate_vuln_tree`, `get_vuln_tree_stats`
+  - MAESTRO agentic-AI threat model: `generate_maestro_threat_model` (layered, graph, heatmap), `validate_maestro_threat_model`, `get_maestro_stats`, `export_maestro` (to STRIDE, attack graph or privilege gradient)
+- `render_engine` parameter (`graphviz` or `svg`) on the generate tools whose modules support usecvislib's SVG engine; the tool's default Graphviz style switches to `sv_default` automatically.
+- `shine` parameter to post-process Graphviz SVG output.
+- Schema resources for the four new modules (19 resources) and their style presets in the styles resources.
+- Prompts: `create_kill_chain`, `create_incident_timeline`, `analyze_supply_chain`, `create_maestro_threat_model` (10 prompts).
+- Server instructions and README point to the rendered gallery: https://vulnex.github.io/usecvislib-gallery/
+- Tests for every new tool, the engine options, and every bundled template of the new modules.
+
+### Changed
+- Requires `usecvislib>=0.6.0`.
+
+### Fixed
+- `generate_custom_diagram` failed on every call: it passed `styleid` to `BuildCustomDiagram()`, which takes no style. The style is now applied through the diagram settings.
+- Component diagram and dependency graph schema resources documented an outdated config format (`diagram`/`graph` sections, dicts of layers and components). They now match what usecvislib reads (`title`, a list of layers with nested components, a list of modules), so configs written from the schema render.
+- Component diagram and dependency graph tools defaulted to style IDs that do not exist (`comp_default`, `dep_default`); they now default to `cd_default` and `dg_default`.
+
 ## [0.4.0] - 2026-03-01
 
 ### Added

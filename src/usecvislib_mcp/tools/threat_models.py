@@ -30,6 +30,8 @@ async def generate_threat_model(
     format: str = "png",
     style: str = "tm_default",
     engine: str = "usecvislib",
+    render_engine: str = "graphviz",
+    shine: bool = False,
 ):
     """Generate a threat model Data Flow Diagram from a configuration dictionary.
 
@@ -41,6 +43,11 @@ async def generate_threat_model(
         format: Output format — png, pdf, svg, or dot.
         style: Style preset ID (e.g. tm_default).
         engine: Rendering engine — 'usecvislib' or 'pytm'.
+        render_engine: graphviz (default) or svg (the stdlib SVG engine: interactive,
+               self-contained SVG; png/pdf via cairosvg; sv_* style presets). It
+               draws the DFD only and bypasses the pytm analysis engine.
+        shine: Post-process Graphviz SVG output with the shine pack (fonts, shadows,
+               hover). Requires format='svg' and render_engine='graphviz'.
     """
     try:
         if engine not in ALLOWED_ENGINES:
@@ -53,6 +60,8 @@ async def generate_threat_model(
             "threat_model",
             fmt=format,
             styleid=style,
+            render_engine=render_engine,
+            shine=shine,
             engine=engine,
         )
     except Exception as e:

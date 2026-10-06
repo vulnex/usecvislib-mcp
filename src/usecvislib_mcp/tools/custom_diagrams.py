@@ -34,7 +34,9 @@ async def generate_custom_diagram(
     Args:
         config: Custom diagram configuration with nodes, edges, settings.
         format: Output format — png, pdf, svg, or dot.
-        style: Style preset ID (e.g. cd_default).
+        style: Style preset ID (cd_default, cd_dark, cd_light, cd_colorful,
+               cd_blueprint, cd_sketch, cd_corporate, cd_neon, cd_pastel,
+               cd_minimal, cd_monochrome, cd_security, cd_nature, cd_ocean).
     """
     try:
         return await build_pattern_b(
@@ -43,7 +45,7 @@ async def generate_custom_diagram(
             "custom_diagram",
             fmt=format,
             build_method="BuildCustomDiagram",
-            styleid=style,
+            style=style,
         )
     except Exception as e:
         return format_error(e)

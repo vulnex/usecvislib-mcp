@@ -2,7 +2,9 @@
 
 MCP (Model Context Protocol) server for the [USecVisLib](https://github.com/vulnex/usecvislib) security visualization library.
 
-Provides 49 tools, 15 resources, and 6 prompt templates that give AI assistants full access to security visualization capabilities — attack trees, attack graphs, threat models, cloud diagrams, binary analysis, privilege gradients, and more.
+Provides 63 tools, 19 resources, and 10 prompt templates that give AI assistants full access to security visualization capabilities — attack trees, attack graphs, threat models, MAESTRO agentic-AI threat models, kill chains (MITRE ATT&CK), incident timelines, vulnerability dependency trees, cloud diagrams, binary analysis, privilege gradients, and more.
+
+See every template and style preset rendered in the **[USecVisLib gallery](https://vulnex.github.io/usecvislib-gallery/)**.
 
 ## Table of Contents
 
@@ -18,9 +20,10 @@ Provides 49 tools, 15 resources, and 6 prompt templates that give AI assistants 
 - [Transport Options](#transport-options)
 - [Authentication](#authentication)
 - [Configuration Reference](#configuration-reference)
-- [Tools (49)](#tools-49)
-- [Resources (15)](#resources-15)
-- [Prompts (6)](#prompts-6)
+- [Tools (63)](#tools-63)
+  - [Render engines](#render-engines)
+- [Resources (19)](#resources-19)
+- [Prompts (10)](#prompts-10)
 - [Companion Skill](#companion-skill)
 - [Development](#development)
 - [License](#license)
@@ -280,7 +283,7 @@ The [`agents/`](agents/) directory contains setup instructions for specific AI c
 | **OpenClaw** | [`agents/openclaw.md`](agents/openclaw.md) | YAML config |
 | **OpenAI Codex** | [`agents/openai.yaml`](agents/openai.yaml) | YAML dependency spec |
 
-Each guide covers MCP server configuration, skill/knowledge loading, and agent-specific notes. All agents connect to the same 49 tools with identical function names.
+Each guide covers MCP server configuration, skill/knowledge loading, and agent-specific notes. All agents connect to the same 63 tools with identical function names.
 
 ## Transport Options
 
@@ -325,7 +328,15 @@ Auth is ignored in `stdio` mode (local pipe — no network exposure).
 | `USECVISLIB_MCP_ALLOWED_INPUT_DIRS` | *(empty)* | Comma-separated allowed dirs for binary file access (unrestricted when empty) |
 | `USECVISLIB_MCP_RATE_LIMIT` | `60` | Max tool calls per minute per tool (0 = unlimited) |
 
-## Tools (49)
+## Tools (63)
+
+### Render engines
+
+The graph tools render with Graphviz by default. Pass `render_engine="svg"` to use USecVisLib's built-in SVG engine instead: self-contained, interactive SVG (PNG and PDF via cairosvg) with the `sv_*` style presets. It is available for attack trees, attack graphs, threat models (DFD only), component diagrams, dependency graphs, kill chains, incident timelines, vulnerability trees and the MAESTRO graph view. When `render_engine="svg"` and `style` is left at the tool's default, the SVG engine's `sv_default` is used.
+
+`shine=True` post-processes Graphviz SVG output (modern font stack, drop shadows, hover emphasis). It needs `format="svg"` and the Graphviz engine, and is available for attack trees, attack graphs, threat models, privilege gradients, component diagrams, dependency graphs and MAESTRO.
+
+Every engine, view and preset is shown in the [gallery](https://vulnex.github.io/usecvislib-gallery/).
 
 ### Attack Trees (4)
 | Tool | Description |
@@ -432,7 +443,37 @@ Auth is ignored in `stdio` mode (local pipe — no network exposure).
 | `analyze_centrality` | Compute betweenness centrality |
 | `compare_visualizations` | Structural diff between two configs |
 
-## Resources (15)
+### Kill Chain / MITRE ATT&CK (4)
+| Tool | Description |
+|------|-------------|
+| `generate_kill_chain` | Generate a kill chain (Cyber Kill Chain, ATT&CK tactics or custom phases) |
+| `validate_kill_chain` | Validate a kill chain configuration |
+| `get_kill_chain_stats` | Get statistics (techniques, detection and mitigation coverage) |
+| `analyze_kill_chain_coverage` | List undetected, unmitigated and critical-gap techniques |
+
+### Incident Timeline (3)
+| Tool | Description |
+|------|-------------|
+| `generate_incident_timeline` | Generate an incident timeline (swimlane, gantt, vertical, compact) |
+| `validate_incident_timeline` | Validate an incident timeline configuration |
+| `get_incident_timeline_stats` | Get statistics (severity breakdown, time to detect/contain/resolve) |
+
+### Vulnerability Dependency Tree (3)
+| Tool | Description |
+|------|-------------|
+| `generate_vuln_tree` | Generate a dependency tree with CVEs (tree, vulnerable_only, critical_path) |
+| `validate_vuln_tree` | Validate a vulnerability tree configuration |
+| `get_vuln_tree_stats` | Get statistics (exposed roots, exploited CVEs, fixed versions) |
+
+### MAESTRO Agentic-AI Threat Model (4)
+| Tool | Description |
+|------|-------------|
+| `generate_maestro_threat_model` | Generate a MAESTRO model (layered, graph, heatmap views) |
+| `validate_maestro_threat_model` | Validate a MAESTRO configuration |
+| `get_maestro_stats` | Get statistics (threats by layer and severity, unmitigated threats) |
+| `export_maestro` | Convert to a STRIDE threat model, attack graph or privilege gradient config |
+
+## Resources (19)
 
 | URI Pattern | Description |
 |-------------|-------------|
@@ -451,8 +492,12 @@ Auth is ignored in `stdio` mode (local pipe — no network exposure).
 | `usecvislib://schemas/custom-diagram` | Custom diagram config schema |
 | `usecvislib://schemas/component-diagram` | Component diagram config schema |
 | `usecvislib://schemas/dependency-graph` | Dependency graph config schema |
+| `usecvislib://schemas/kill-chain` | Kill chain config schema |
+| `usecvislib://schemas/incident-timeline` | Incident timeline config schema |
+| `usecvislib://schemas/vuln-tree` | Vulnerability dependency tree config schema |
+| `usecvislib://schemas/maestro` | MAESTRO agentic-AI threat model config schema |
 
-## Prompts (6)
+## Prompts (10)
 
 | Prompt | Description |
 |--------|-------------|
@@ -462,6 +507,10 @@ Auth is ignored in `stdio` mode (local pipe — no network exposure).
 | `analyze_binary` | Guide for binary file triage and analysis |
 | `create_privilege_gradient` | Guide for privilege gradient creation |
 | `review_cloud_security` | Guide for cloud architecture security review |
+| `create_kill_chain` | Guide for mapping an attack onto a kill chain / MITRE ATT&CK |
+| `create_incident_timeline` | Guide for building an incident response timeline |
+| `analyze_supply_chain` | Guide for a vulnerability dependency tree (SCA) review |
+| `create_maestro_threat_model` | Guide for threat modeling an agentic AI system with MAESTRO |
 
 ## Companion Skill
 

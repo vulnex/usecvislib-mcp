@@ -45,7 +45,12 @@ def _build_server() -> FastMCP:
             "Security visualization server providing attack trees, attack graphs, "
             "threat models, mermaid diagrams, binary analysis, cloud diagrams, "
             "privilege gradient graphs, custom diagrams, component diagrams, "
-            "dependency graphs, and utility tools via the USecVisLib library."
+            "dependency graphs, kill chains (MITRE ATT&CK), incident timelines, "
+            "vulnerability dependency trees, MAESTRO agentic-AI threat models, "
+            "and utility tools via the USecVisLib library. Most graph tools take "
+            "render_engine='svg' for self-contained interactive SVG. Rendered "
+            "examples of every template and style preset: "
+            "https://vulnex.github.io/usecvislib-gallery/"
         ),
     }
 
@@ -138,10 +143,14 @@ _tool_modules = [
     "cloud_diagrams",
     "custom_diagrams",
     "export",
+    "kill_chain",
+    "maestro",
     "mermaid",
     "privilege_gradient",
     "threat_models",
+    "timeline",
     "utilities",
+    "vuln_tree",
 ]
 
 import importlib  # noqa: E402

@@ -33,6 +33,10 @@ STYLE_CONFIG_MAP = {
     "component-diagram": "config_componentdiagram.tml",
     "dependency-graph": "config_dependencygraph.tml",
     "binary-visualization": "config_binvis.tml",
+    "kill-chain": "config_killchain.tml",
+    "incident-timeline": "config_timeline.tml",
+    "vuln-tree": "config_vulntree.tml",
+    "maestro": "config_maestro.tml",
 }
 
 

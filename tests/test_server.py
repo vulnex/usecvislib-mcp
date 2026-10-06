@@ -96,6 +96,24 @@ def test_tools_registered():
         # Export (2) — requires ComponentDiagram, DependencyGraph, PrivilegeGradient
         "export_data",
         "generate_report",
+        # Kill Chain (4) — requires KillChain
+        "generate_kill_chain",
+        "validate_kill_chain",
+        "get_kill_chain_stats",
+        "analyze_kill_chain_coverage",
+        # Incident Timeline (3) — requires IncidentTimeline
+        "generate_incident_timeline",
+        "validate_incident_timeline",
+        "get_incident_timeline_stats",
+        # Vulnerability Tree (3) — requires VulnDependencyTree
+        "generate_vuln_tree",
+        "validate_vuln_tree",
+        "get_vuln_tree_stats",
+        # MAESTRO (4) — requires MaestroThreatModel
+        "generate_maestro_threat_model",
+        "validate_maestro_threat_model",
+        "get_maestro_stats",
+        "export_maestro",
     }
 
     # Core tools must always be present
@@ -119,7 +137,7 @@ def test_resources_registered():
 
 
 def test_prompts_registered():
-    """All 6 prompts are registered on the server."""
+    """All 10 prompts are registered on the server."""
     from usecvislib_mcp.server import mcp
 
     prompt_names = {p.name for p in mcp._prompt_manager.list_prompts()}
@@ -131,11 +149,15 @@ def test_prompts_registered():
         "analyze_binary",
         "create_privilege_gradient",
         "review_cloud_security",
+        "create_kill_chain",
+        "create_incident_timeline",
+        "analyze_supply_chain",
+        "create_maestro_threat_model",
     }
 
     for prompt_name in expected_prompts:
         assert prompt_name in prompt_names, f"Prompt '{prompt_name}' not registered"
 
-    assert len(prompt_names) == 6, (
-        f"Expected 6 prompts, found {len(prompt_names)}. Extra: {prompt_names - expected_prompts}"
+    assert len(prompt_names) == 10, (
+        f"Expected 10 prompts, found {len(prompt_names)}. Extra: {prompt_names - expected_prompts}"
     )

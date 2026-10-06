@@ -440,40 +440,33 @@ COMPONENT_DIAGRAM_SCHEMA = {
     "description": "Configuration schema for component diagram visualizations",
     "format": "TOML, JSON, or YAML",
     "sections": {
-        "diagram": {
-            "description": "Diagram metadata",
+        "title": {"type": "string", "required": True, "description": "Diagram title"},
+        "layers": {
+            "type": "list of objects, drawn top to bottom by 'order'",
             "fields": {
                 "name": {"type": "string", "required": True},
-                "description": {"type": "string"},
-            },
-        },
-        "layers": {
-            "type": "dict of dicts, keyed by layer ID",
-            "value_fields": {
-                "label": {"type": "string", "required": True},
-                "order": {"type": "integer", "description": "Layer ordering (top to bottom)"},
-                "color": {"type": "string"},
-            },
-        },
-        "components": {
-            "type": "dict of dicts, keyed by component ID",
-            "value_fields": {
-                "label": {"type": "string", "required": True},
-                "layer": {
-                    "type": "string",
-                    "required": True,
-                    "description": "Layer this component belongs to",
+                "order": {"type": "integer", "description": "Layer position (1 = top)"},
+                "components": {
+                    "type": "list of objects",
+                    "fields": {
+                        "id": {"type": "string", "required": True},
+                        "name": {"type": "string", "required": True},
+                        "type": {
+                            "type": "string",
+                            "description": "e.g. frontend, service, database, queue, cache",
+                        },
+                        "tech": {"type": "string", "description": "Technology, e.g. FastAPI"},
+                    },
                 },
-                "type": {"type": "string"},
             },
         },
         "connections": {
             "type": "list of objects",
             "fields": {
-                "from": {"type": "string", "required": True},
-                "to": {"type": "string", "required": True},
+                "from": {"type": "string", "required": True, "description": "Component ID"},
+                "to": {"type": "string", "required": True, "description": "Component ID"},
                 "label": {"type": "string"},
-                "style": {"type": "string"},
+                "style": {"type": "string", "values": ["sync", "async", "event"]},
             },
         },
     },
@@ -483,22 +476,19 @@ DEPENDENCY_GRAPH_SCHEMA = {
     "description": "Configuration schema for dependency graph visualizations",
     "format": "TOML, JSON, or YAML",
     "sections": {
-        "graph": {
-            "description": "Graph metadata",
-            "fields": {
-                "name": {"type": "string", "required": True},
-                "description": {"type": "string"},
-            },
-        },
+        "title": {"type": "string", "required": True, "description": "Graph title"},
         "modules": {
-            "type": "dict of dicts, keyed by module ID",
-            "value_fields": {
-                "label": {"type": "string", "required": True},
-                "sloc": {
-                    "type": "integer",
-                    "description": "Source lines of code (affects node size)",
+            "type": "list of objects (a dict keyed by module ID is also accepted)",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "name": {"type": "string", "required": True},
+                "group": {
+                    "type": "string",
+                    "description": "Package / layer; groups become clusters",
                 },
-                "language": {"type": "string"},
+                "sloc": {"type": "integer", "description": "Source lines of code (node size)"},
+                "version": {"type": "string"},
+                "external": {"type": "boolean", "description": "Third-party module"},
             },
         },
         "dependencies": {
@@ -506,8 +496,15 @@ DEPENDENCY_GRAPH_SCHEMA = {
             "fields": {
                 "from": {"type": "string", "required": True},
                 "to": {"type": "string", "required": True},
-                "label": {"type": "string"},
-                "type": {"type": "string", "values": ["import", "runtime", "build", "test"]},
+                "type": {"type": "string", "description": "e.g. import, framework, runtime"},
+                "weight": {"type": "string", "values": ["light", "medium", "heavy"]},
+            },
+        },
+        "circular": {
+            "type": "list of objects",
+            "fields": {
+                "cycle": {"type": "list of module IDs"},
+                "severity": {"type": "string", "values": ["low", "medium", "high"]},
             },
         },
     },
@@ -548,3 +545,341 @@ def get_component_diagram_schema() -> str:
 def get_dependency_graph_schema() -> str:
     """Configuration schema documentation for dependency graph visualizations."""
     return json.dumps(DEPENDENCY_GRAPH_SCHEMA, indent=2)
+
+
+# ── 0.5.0 Schemas (usecvislib 0.6.0 modules) ────────────────────────
+
+RENDER_ENGINE_NOTE = (
+    "render_engine='svg' renders with the stdlib SVG engine (self-contained, interactive "
+    "SVG; png/pdf via cairosvg; sv_* presets). Examples of every preset: "
+    "https://vulnex.github.io/usecvislib-gallery/"
+)
+
+KILL_CHAIN_SCHEMA = {
+    "description": "Configuration schema for kill chain / MITRE ATT&CK visualizations",
+    "format": "TOML, JSON, or YAML",
+    "sections": {
+        "killchain": {
+            "description": "Chain metadata",
+            "fields": {
+                "name": {"type": "string", "required": True},
+                "framework": {
+                    "type": "string",
+                    "default": "kill_chain",
+                    "values": ["kill_chain", "attack", "custom"],
+                    "description": "kill_chain = Lockheed Martin phases, "
+                    "attack = MITRE ATT&CK tactics, custom = the 'phases' list below",
+                },
+                "phases": {
+                    "type": "list of strings",
+                    "description": "Phase order (framework = custom)",
+                },
+            },
+        },
+        "techniques": {
+            "type": "dict of dicts, keyed by technique ID (e.g. T1566)",
+            "value_fields": {
+                "name": {"type": "string", "required": True},
+                "phase": {"type": "string", "required": True, "description": "Phase / tactic name"},
+                "severity": {
+                    "type": "string",
+                    "default": "medium",
+                    "values": ["critical", "high", "medium", "low"],
+                },
+                "detected": {"type": "boolean", "default": False},
+                "mitigated": {"type": "boolean", "default": False},
+                "detection": {"type": "string", "description": "How it is detected"},
+                "mitigation": {"type": "string", "description": "How it is mitigated"},
+                "description": {"type": "string"},
+            },
+        },
+        "incidents": {
+            "type": "list of objects",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "name": {"type": "string"},
+                "techniques": {
+                    "type": "list of technique IDs",
+                    "description": "Attack path, in order",
+                },
+            },
+        },
+    },
+    "styles": [
+        "kc_default",
+        "kc_light",
+        "kc_coverage",
+        "sv_default",
+        "sv_dark",
+        "sv_neon",
+        "sv_corporate",
+        "sv_minimal",
+    ],
+    "render_engine": RENDER_ENGINE_NOTE,
+}
+
+INCIDENT_TIMELINE_SCHEMA = {
+    "description": "Configuration schema for incident timelines",
+    "format": "TOML, JSON, or YAML",
+    "sections": {
+        "incident": {
+            "description": "Incident metadata",
+            "fields": {
+                "name": {"type": "string", "required": True},
+                "id": {"type": "string"},
+                "analyst": {"type": "string"},
+            },
+        },
+        "events": {
+            "type": "list of objects",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "timestamp": {
+                    "type": "string",
+                    "required": True,
+                    "description": "ISO-8601, e.g. 2026-02-03T13:10:00Z",
+                },
+                "title": {"type": "string", "required": True},
+                "severity": {
+                    "type": "string",
+                    "default": "info",
+                    "values": ["critical", "high", "medium", "low", "info"],
+                },
+                "lane": {
+                    "type": "string",
+                    "default": "Events",
+                    "description": "Swimlane (actor or system)",
+                },
+                "duration": {
+                    "type": "string",
+                    "description": "Optional, e.g. '45m' or '2h' (drawn as a bar)",
+                },
+                "technique": {"type": "string", "description": "MITRE ATT&CK technique ID"},
+                "source": {"type": "string", "description": "Detection source, e.g. EDR, UEBA"},
+                "description": {"type": "string"},
+                "indicators": {"type": "list of strings"},
+            },
+        },
+        "phases": {
+            "type": "list of objects",
+            "description": "Response-phase bands. Names containing detect, contain and "
+            "recover/eradicat/resolution give time_to_detect, time_to_contain and "
+            "time_to_resolve (measured from the first event)",
+            "fields": {
+                "name": {"type": "string", "required": True},
+                "start": {"type": "string", "required": True},
+                "end": {"type": "string", "required": True},
+                "color": {"type": "string", "default": "#3498db"},
+            },
+        },
+    },
+    "modes": ["swimlane", "gantt", "vertical", "compact"],
+    "styles": [
+        "tl_default",
+        "tl_light",
+        "tl_dark",
+        "tl_print",
+        "tl_minimal",
+        "tl_corporate",
+        "sv_default",
+        "sv_dark",
+        "sv_print",
+        "sv_corporate",
+        "sv_minimal",
+    ],
+    "render_engine": RENDER_ENGINE_NOTE,
+}
+
+VULN_TREE_SCHEMA = {
+    "description": "Configuration schema for vulnerability dependency trees (supply chain / SCA)",
+    "format": "TOML, JSON, or YAML",
+    "sections": {
+        "vulntree": {
+            "description": "Tree metadata",
+            "fields": {
+                "name": {"type": "string", "required": True},
+                "root_packages": {
+                    "type": "list of package IDs",
+                    "description": "Roots; inferred (packages nothing depends on) when omitted",
+                },
+            },
+        },
+        "dependencies": {
+            "type": "dict of dicts, keyed by package ID",
+            "value_fields": {
+                "name": {"type": "string", "required": True},
+                "version": {"type": "string"},
+                "direct": {"type": "boolean", "default": False},
+                "dependencies": {"type": "list of package IDs"},
+                "vulnerabilities": {
+                    "type": "list of objects",
+                    "fields": {
+                        "id": {"type": "string", "required": True, "description": "CVE / GHSA ID"},
+                        "severity": {
+                            "type": "string",
+                            "values": ["critical", "high", "medium", "low"],
+                        },
+                        "cvss": {"type": "float"},
+                        "fixed_version": {"type": "string"},
+                        "exploited": {
+                            "type": "boolean",
+                            "description": "Known exploited (e.g. CISA KEV)",
+                        },
+                        "cwe": {"type": "string"},
+                        "description": {"type": "string"},
+                    },
+                },
+            },
+        },
+    },
+    "modes": ["tree", "vulnerable_only", "critical_path"],
+    "styles": [
+        "vt_default",
+        "vt_dark",
+        "vt_security",
+        "vt_corporate",
+        "vt_minimal",
+        "sv_default",
+        "sv_dark",
+        "sv_security",
+        "sv_corporate",
+        "sv_minimal",
+    ],
+    "render_engine": RENDER_ENGINE_NOTE,
+}
+
+MAESTRO_SCHEMA = {
+    "description": "Configuration schema for MAESTRO agentic-AI threat models "
+    "(CSA MAESTRO, 7 layers)",
+    "format": "TOML, JSON, or YAML",
+    "layers": [
+        "foundation-models",
+        "data-operations",
+        "agent-frameworks",
+        "infrastructure",
+        "observability",
+        "security",
+        "agent-ecosystem",
+    ],
+    "sections": {
+        "meta": {
+            "fields": {
+                "name": {"type": "string", "required": True},
+                "version": {"type": "string"},
+                "owner": {"type": "string"},
+                "description": {"type": "string"},
+            },
+        },
+        "architecture": {
+            "fields": {
+                "patterns": {
+                    "type": "list of strings",
+                    "description": "e.g. single-agent, multi-agent, task-oriented, "
+                    "unconstrained-conversational; adds pattern-specific catalog threats",
+                },
+            },
+        },
+        "agents": {
+            "type": "list of objects",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "name": {"type": "string", "required": True},
+                "type": {"type": "string", "description": "e.g. task-oriented, human-in-the-loop"},
+                "autonomy": {"type": "string", "description": "e.g. reactive, deliberative"},
+                "layers": {"type": "list of layer IDs"},
+                "goals": {"type": "list of strings"},
+                "capabilities": {"type": "list of strings"},
+                "tools": {"type": "list of strings"},
+            },
+        },
+        "assets": {
+            "type": "list of objects",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "name": {"type": "string", "required": True},
+                "layer": {"type": "string", "description": "Layer ID"},
+                "sensitivity": {"type": "string", "values": ["low", "medium", "high"]},
+                "owner_agent": {"type": "string"},
+            },
+        },
+        "threats": {
+            "type": "list of objects",
+            "description": "Overrides on catalog threats (IDs like T-L2-002) or custom threats",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "target": {"type": "string", "description": "Agent ID"},
+                "severity": {"type": "string", "values": ["critical", "high", "medium", "low"]},
+                "status": {
+                    "type": "string",
+                    "default": "identified",
+                    "values": [
+                        "identified",
+                        "in-progress",
+                        "mitigated",
+                        "accepted",
+                        "not-applicable",
+                    ],
+                },
+                "mitigations": {"type": "list of mitigation IDs"},
+            },
+        },
+        "mitigations": {
+            "type": "list of objects",
+            "fields": {
+                "id": {"type": "string", "required": True},
+                "name": {"type": "string"},
+                "layer": {"type": "string"},
+                "type": {"type": "string", "values": ["preventive", "detective"]},
+                "implemented": {"type": "boolean"},
+            },
+        },
+        "catalog": {
+            "fields": {
+                "mode": {
+                    "type": "string",
+                    "default": "auto",
+                    "description": "auto = add catalog threats",
+                }
+            }
+        },
+    },
+    "views": ["layered", "graph", "heatmap"],
+    "exports": ["stride", "attack_graph", "privilege_gradient"],
+    "styles": [
+        "ma_default",
+        "ma_dark",
+        "ma_blueprint",
+        "ma_severity",
+        "ma_compact",
+        "sv_default",
+        "sv_dark",
+        "sv_security",
+        "sv_corporate",
+        "sv_minimal",
+    ],
+    "render_engine": RENDER_ENGINE_NOTE + " MAESTRO: graph view only.",
+}
+
+
+@mcp.resource("usecvislib://schemas/kill-chain")
+def get_kill_chain_schema() -> str:
+    """Configuration schema documentation for kill chain / MITRE ATT&CK visualizations."""
+    return json.dumps(KILL_CHAIN_SCHEMA, indent=2)
+
+
+@mcp.resource("usecvislib://schemas/incident-timeline")
+def get_incident_timeline_schema() -> str:
+    """Configuration schema documentation for incident timelines."""
+    return json.dumps(INCIDENT_TIMELINE_SCHEMA, indent=2)
+
+
+@mcp.resource("usecvislib://schemas/vuln-tree")
+def get_vuln_tree_schema() -> str:
+    """Configuration schema documentation for vulnerability dependency trees."""
+    return json.dumps(VULN_TREE_SCHEMA, indent=2)
+
+
+@mcp.resource("usecvislib://schemas/maestro")
+def get_maestro_schema() -> str:
+    """Configuration schema documentation for MAESTRO agentic-AI threat models."""
+    return json.dumps(MAESTRO_SCHEMA, indent=2)

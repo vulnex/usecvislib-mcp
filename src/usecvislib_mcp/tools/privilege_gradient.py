@@ -27,6 +27,7 @@ async def generate_privilege_gradient(
     config: dict,
     format: str = "png",
     style: str = "pg_default",
+    shine: bool = False,
 ):
     """Generate a privilege gradient graph from a configuration dictionary.
 
@@ -38,10 +39,12 @@ async def generate_privilege_gradient(
         config: Privilege gradient configuration dict.
         format: Output format — png, pdf, svg, or dot.
         style: Style preset ID (e.g. pg_default).
+        shine: Post-process Graphviz SVG output with the shine pack (fonts, shadows,
+               hover). Requires format='svg' and render_engine='graphviz'.
     """
     try:
         return await build_visualization(
-            PrivilegeGradient, config, "privilege_gradient", fmt=format, styleid=style
+            PrivilegeGradient, config, "privilege_gradient", fmt=format, styleid=style, shine=shine
         )
     except Exception as e:
         return format_error(e)

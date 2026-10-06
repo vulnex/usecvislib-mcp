@@ -28,7 +28,9 @@ from ..server import mcp
 async def generate_component_diagram(
     config: dict,
     format: str = "png",
-    style: str = "comp_default",
+    style: str = "cd_default",
+    render_engine: str = "graphviz",
+    shine: bool = False,
 ):
     """Generate a component diagram from a configuration dictionary.
 
@@ -39,11 +41,22 @@ async def generate_component_diagram(
     Args:
         config: Component diagram configuration dict.
         format: Output format — png, pdf, svg, or dot.
-        style: Style preset ID (e.g. comp_default).
+        style: Style preset ID (cd_default, cd_dark, cd_blueprint, cd_minimal;
+               sv_* presets with the SVG engine).
+        render_engine: graphviz (default) or svg (the stdlib SVG engine: interactive,
+               self-contained SVG; png/pdf via cairosvg; sv_* style presets).
+        shine: Post-process Graphviz SVG output with the shine pack (fonts, shadows,
+               hover). Requires format='svg' and render_engine='graphviz'.
     """
     try:
         return await build_visualization(
-            ComponentDiagram, config, "component_diagram", fmt=format, styleid=style
+            ComponentDiagram,
+            config,
+            "component_diagram",
+            fmt=format,
+            styleid=style,
+            render_engine=render_engine,
+            shine=shine,
         )
     except Exception as e:
         return format_error(e)
@@ -90,7 +103,9 @@ async def get_component_diagram_stats(config: dict) -> str:
 async def generate_dependency_graph(
     config: dict,
     format: str = "png",
-    style: str = "dep_default",
+    style: str = "dg_default",
+    render_engine: str = "graphviz",
+    shine: bool = False,
 ):
     """Generate a dependency graph from a configuration dictionary.
 
@@ -101,11 +116,22 @@ async def generate_dependency_graph(
     Args:
         config: Dependency graph configuration dict.
         format: Output format — png, pdf, svg, or dot.
-        style: Style preset ID (e.g. dep_default).
+        style: Style preset ID (dg_default, dg_dark, dg_minimal, dg_coupling;
+               sv_* presets with the SVG engine).
+        render_engine: graphviz (default) or svg (the stdlib SVG engine: interactive,
+               self-contained SVG; png/pdf via cairosvg; sv_* style presets).
+        shine: Post-process Graphviz SVG output with the shine pack (fonts, shadows,
+               hover). Requires format='svg' and render_engine='graphviz'.
     """
     try:
         return await build_visualization(
-            DependencyGraph, config, "dependency_graph", fmt=format, styleid=style
+            DependencyGraph,
+            config,
+            "dependency_graph",
+            fmt=format,
+            styleid=style,
+            render_engine=render_engine,
+            shine=shine,
         )
     except Exception as e:
         return format_error(e)

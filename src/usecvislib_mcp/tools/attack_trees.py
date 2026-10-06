@@ -38,6 +38,8 @@ async def generate_attack_tree(
     config: dict,
     format: str = "png",
     style: str = "at_default",
+    render_engine: str = "graphviz",
+    shine: bool = False,
 ):
     """Generate an attack tree visualization from a configuration dictionary.
 
@@ -49,10 +51,20 @@ async def generate_attack_tree(
         config: Attack tree configuration with tree/nodes/edges sections.
         format: Output format — png, pdf, svg, or dot.
         style: Style preset ID (e.g. at_default, at_corporate, at_neon).
+        render_engine: graphviz (default) or svg (the stdlib SVG engine: interactive,
+               self-contained SVG; png/pdf via cairosvg; sv_* style presets).
+        shine: Post-process Graphviz SVG output with the shine pack (fonts, shadows,
+               hover). Requires format='svg' and render_engine='graphviz'.
     """
     try:
         return await build_visualization(
-            AttackTrees, config, "attack_tree", fmt=format, styleid=style
+            AttackTrees,
+            config,
+            "attack_tree",
+            fmt=format,
+            styleid=style,
+            render_engine=render_engine,
+            shine=shine,
         )
     except Exception as e:
         return format_error(e)
