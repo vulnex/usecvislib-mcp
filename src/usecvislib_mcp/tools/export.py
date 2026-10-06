@@ -22,9 +22,13 @@ from usecvislib import (
     ComponentDiagram,
     DependencyGraph,
     Exporter,
+    IncidentTimeline,
+    KillChain,
+    MaestroThreatModel,
     PrivilegeGradient,
     ReportGenerator,
     ThreatModeling,
+    VulnDependencyTree,
 )
 
 from ..config import get_output_dir
@@ -46,6 +50,10 @@ _VIZ_CLASS_MAP = {
     "privilege_gradient": PrivilegeGradient,
     "component_diagram": ComponentDiagram,
     "dependency_graph": DependencyGraph,
+    "kill_chain": KillChain,
+    "incident_timeline": IncidentTimeline,
+    "vuln_tree": VulnDependencyTree,
+    "maestro": MaestroThreatModel,
 }
 
 
@@ -128,7 +136,8 @@ async def generate_report(
         config: Visualization configuration dictionary.
         viz_type: Visualization type — 'attack_tree', 'attack_graph',
                   'threat_model', 'privilege_gradient', 'component_diagram',
-                  or 'dependency_graph'.
+                  'dependency_graph', 'kill_chain', 'incident_timeline',
+                  'vuln_tree', or 'maestro'.
         formats: List of output formats — 'json', 'csv', 'yaml', 'md'.
                  Defaults to ['json', 'csv', 'md'].
 

@@ -22,9 +22,41 @@ from usecvislib import (
     parse_cvss_vector_unified,
     serialize_to_mermaid,
 )
+from usecvislib.mermaid import detect_visualization_type
 
 from ..helpers import check_rate_limit, format_error, log_tool_call, run_with_timeout
 from ..server import mcp
+
+# usecvislib.mermaid.detect_visualization_type() names -> MCP visualization types
+_LIBRARY_TYPES = {
+    "attack_tree": "attack_tree",
+    "attack_graph": "attack_graph",
+    "threat_model": "threat_model",
+    "privilege_gradient": "privilege_gradient",
+    "component_diagram": "component_diagram",
+    "dependency_graph": "dependency_graph",
+    "killchain": "kill_chain",
+    "timeline": "incident_timeline",
+    "vuln_tree": "vuln_tree",
+    "maestro": "maestro",
+    "access_graph": "access_graph",
+    "mermaid_source": "mermaid",
+}
+
+
+def _detect(config: dict) -> tuple[str, str]:
+    """(MCP visualization type, confidence) for a config dict."""
+    library_type = detect_visualization_type(config)
+    if library_type in _LIBRARY_TYPES:
+        return _LIBRARY_TYPES[library_type], "high"
+    nodes = config.get("nodes")
+    if isinstance(nodes, list) and any(isinstance(n, dict) and "icon" in n for n in nodes):
+        return "cloud_diagram", "high" if "diagram" in config else "medium"
+    if library_type == "node_graph" or "schema" in config:
+        return "custom_diagram", "high" if "schema" in config else "medium"
+    if "nodes" in config or "edges" in config:
+        return "custom_diagram", "low"
+    return "unknown", "low"
 
 
 @mcp.tool()
@@ -35,25 +67,34 @@ async def convert_to_mermaid(
 ) -> str:
     """Convert a visualization configuration to Mermaid diagram syntax.
 
-    Supports attack trees, attack graphs, and threat models. Auto-detects
-    the visualization type from the config structure if not specified.
+    Supports attack trees, attack graphs, threat models, kill chains,
+    incident timelines, vulnerability trees, privilege gradients,
+    component diagrams, dependency graphs, MAESTRO models, and
+    custom/cloud node-and-edge diagrams. The type is detected from the
+    config structure (see detect_config_type).
 
     Args:
         config: Visualization configuration dict.
-        viz_type: Visualization type hint — 'attack_tree', 'attack_graph',
-                  or 'threat_model'. Auto-detected if empty.
+        viz_type: Optional expected type (e.g. 'attack_tree', 'kill_chain',
+                  'maestro'). If given and the config is detected as a
+                  different type, an error is returned instead of a
+                  conversion of the wrong kind.
 
     Returns:
-        JSON with 'mermaid_source' containing the Mermaid syntax.
+        JSON with 'mermaid_source' containing the Mermaid syntax and the
+        detected 'viz_type'.
     """
     try:
         check_rate_limit("convert_to_mermaid")
+        detected, _confidence = _detect(config)
+        if viz_type and viz_type != detected:
+            raise ValueError(f"Config looks like '{detected}', not '{viz_type}'")
 
         def _sync_convert():
-            return serialize_to_mermaid(config, diagram_type=viz_type or None)
+            return serialize_to_mermaid(config)
 
         result = await run_with_timeout(_sync_convert)
-        return json.dumps({"mermaid_source": result}, indent=2)
+        return json.dumps({"mermaid_source": result, "viz_type": detected}, indent=2)
     except Exception as e:
         return format_error(e)
 
@@ -116,59 +157,20 @@ async def calculate_cvss_score(vector: str) -> str:
 async def detect_config_type(config: dict) -> str:
     """Detect the visualization type from a configuration dictionary.
 
-    Uses heuristics to identify whether a config is for an attack tree,
-    attack graph, threat model, privilege gradient, cloud diagram,
-    custom diagram, component diagram, or dependency graph.
+    Uses USecVisLib's own config detection. Possible types: attack_tree,
+    attack_graph, threat_model, privilege_gradient, component_diagram,
+    dependency_graph, kill_chain, incident_timeline, vuln_tree, maestro,
+    cloud_diagram, custom_diagram, access_graph, mermaid, or unknown.
 
     Args:
         config: Configuration dictionary to analyze.
 
     Returns:
-        JSON with 'type' string and 'confidence' level.
+        JSON with 'type' string and 'confidence' level (high, medium, low).
     """
     try:
         check_rate_limit("detect_config_type")
-        detected = "unknown"
-        confidence = "low"
-
-        # Attack Trees: have 'tree' with 'root'
-        if "tree" in config and "root" in config.get("tree", {}):
-            detected = "attack_tree"
-            confidence = "high"
-        # Attack Graphs: have 'graph' and 'hosts'/'vulnerabilities'
-        elif "graph" in config and ("hosts" in config or "vulnerabilities" in config):
-            detected = "attack_graph"
-            confidence = "high"
-        # Threat Models: have 'model' and 'processes'/'dataflows'
-        elif "model" in config and ("processes" in config or "dataflows" in config):
-            detected = "threat_model"
-            confidence = "high"
-        # Privilege Gradient: have 'gradient' and 'zones'
-        elif "gradient" in config and "zones" in config:
-            detected = "privilege_gradient"
-            confidence = "high"
-        # Component Diagram: have 'diagram' and 'layers'/'components'
-        elif "diagram" in config and ("layers" in config or "components" in config):
-            detected = "component_diagram"
-            confidence = "high"
-        # Dependency Graph: have 'graph' and 'modules'/'dependencies'
-        elif "graph" in config and ("modules" in config or "dependencies" in config):
-            detected = "dependency_graph"
-            confidence = "high"
-        # Cloud Diagram: have 'config'/'nodes' with 'icon' fields
-        elif "nodes" in config:
-            nodes = config["nodes"]
-            if isinstance(nodes, list) and any("icon" in n for n in nodes if isinstance(n, dict)):
-                detected = "cloud_diagram"
-                confidence = "medium"
-            else:
-                detected = "custom_diagram"
-                confidence = "medium"
-        # Custom Diagram: have 'settings' or 'edges' without other markers
-        elif "settings" in config or "edges" in config:
-            detected = "custom_diagram"
-            confidence = "low"
-
+        detected, confidence = _detect(config)
         return json.dumps({"type": detected, "confidence": confidence}, indent=2)
     except Exception as e:
         return format_error(e)

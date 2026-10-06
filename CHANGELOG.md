@@ -31,6 +31,9 @@ Requires usecvislib 0.6.0.
 - Component diagram and dependency graph tools defaulted to style IDs that do not exist (`comp_default`, `dep_default`); they now default to `cd_default` and `dg_default`.
 - `batch_process` advertised `privilege_gradient`, `component_diagram` and `dependency_graph`, which the usecvislib batch processor rejected. With the extended batch processor in usecvislib it now handles those plus `kill_chain`, `incident_timeline`, `vuln_tree` and `maestro`.
 - Component diagram schema: lists the valid component types and the `bidirectional` connection style.
+- `detect_config_type` used its own outdated rules: it recognised none of the newer modules and expected the old component/dependency formats. It now uses usecvislib's config detection and reports kill_chain, incident_timeline, vuln_tree, maestro, access_graph and mermaid too.
+- `convert_to_mermaid` passed its `viz_type` hint to usecvislib as the Mermaid diagram type. The hint is now checked against the detected type (a mismatch returns an error), the response includes the detected `viz_type`, and the docs list every type the converter supports.
+- `generate_report` and `compare_visualizations` accept `kill_chain`, `incident_timeline`, `vuln_tree` and `maestro` (with the matching usecvislib fixes, reports list only the files they wrote).
 
 ## [0.4.0] - 2026-03-01
 

@@ -95,7 +95,9 @@ async def compare_visualizations(
         old_config: Previous version of the configuration.
         new_config: New version of the configuration.
         viz_type: Visualization type — 'attack_tree', 'attack_graph',
-                  or 'threat_model'.
+                  'threat_model', 'privilege_gradient', 'component_diagram',
+                  'dependency_graph', 'kill_chain', 'incident_timeline',
+                  'vuln_tree', or 'maestro'.
 
     Returns:
         JSON with change summary (added/removed/modified counts)
