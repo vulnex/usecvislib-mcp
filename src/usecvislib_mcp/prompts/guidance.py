@@ -229,13 +229,17 @@ encrypted or compressed regions.
    frequencies. Uniform distribution suggests encryption; spikes suggest structure.
 4. **Visual Patterns**: Use `analyze_binary_heatmap` for a 2D view to spot
    repeating patterns, headers, or anomalies.
-5. **Full Analysis**: Use `analyze_binary_all` to generate all visualizations at once.
+5. **Identify Formats**: Use `analyze_binary_digraph` for the byte-pair plot:
+   machine code, ASCII text, UTF-16, compressed and encrypted data each leave
+   a distinct pattern (random data is uniform; text fills the printable square).
+6. **Full Analysis**: Use `analyze_binary_all` to generate all five charts at once.
 
 ## Available Tools
 - `analyze_binary_entropy` — Entropy visualization across the file
 - `analyze_binary_distribution` — Byte frequency distribution chart
 - `analyze_binary_heatmap` — 2D byte value heatmap
-- `analyze_binary_all` — All visualizations in one call
+- `analyze_binary_digraph` — Byte-pair (digraph) plot, 256x256 log scale
+- `analyze_binary_all` — All five charts in one call (adds the wind rose: byte values, polar)
 - `get_binary_stats` — Statistical summary without visualization
 
 ## Tips

@@ -296,8 +296,19 @@ BINARY_ANALYSIS_SCHEMA = {
             "default": "png",
             "values": ["png", "pdf", "svg"],
         },
+        "style": {
+            "type": "string",
+            "default": "bv_default",
+            "description": "bv_* preset; see usecvislib://styles/binary-visualization",
+        },
     },
-    "visualization_types": ["entropy", "distribution", "heatmap", "all"],
+    "visualization_types": {
+        "entropy": "Sliding-window entropy across the file",
+        "distribution": "Byte value frequencies (0-255)",
+        "heatmap": "2D layout of the file, one row per block of bytes",
+        "digraph": "Byte-pair plot: how often byte B follows byte A (256x256, log scale)",
+        "all": "Every chart, including the wind rose (polar histogram of byte values)",
+    },
 }
 
 CLOUD_DIAGRAM_SCHEMA = {

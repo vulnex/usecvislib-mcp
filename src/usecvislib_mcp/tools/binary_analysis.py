@@ -13,6 +13,7 @@
 
 """MCP tools for binary file visualization and analysis."""
 
+import base64
 import json
 from pathlib import Path
 
@@ -30,19 +31,22 @@ from ..output import OutputHandler
 from ..server import mcp
 
 ALLOWED_BINARY_FORMATS = frozenset({"png", "pdf", "svg"})
+BINARY_CHARTS = ("entropy", "distribution", "windrose", "heatmap", "digraph")
 
 
-async def _build_binary_viz(file_path: str, build_type: str, output_prefix: str, fmt: str):
-    """Shared helper for binary visualization tools.
+async def _build_binary_viz(file_path: str, chart: str, output_prefix: str, fmt: str, style: str):
+    """Render one binary chart to the exact path the result reports.
 
-    Validates input, creates BinVis, runs the specified build type, and
-    returns the formatted result.
+    ``BinVis.build()`` writes ``<base>_<chart>.<fmt>``, so the path this tool
+    used to report never existed (size 0, "Output file not found" in base64
+    mode). Each chart is now written to the reported path directly.
 
     Args:
         file_path: User-provided file path to analyze.
-        build_type: BinVis build type — 'entropy', 'distribution', 'heatmap', or 'all'.
+        chart: entropy, distribution, windrose, heatmap, or digraph.
         output_prefix: Prefix for the output filename.
         fmt: Output format — png, pdf, or svg.
+        style: bv_* style preset ("" for the default).
     """
     validate_format(fmt, ALLOWED_BINARY_FORMATS)
     check_rate_limit(output_prefix)
@@ -52,8 +56,9 @@ async def _build_binary_viz(file_path: str, build_type: str, output_prefix: str,
 
     def _sync_build():
         output_base = str(Path(output_path).with_suffix(""))
-        bv = BinVis(validated_path, output_base, format=fmt, validate_paths=False)
-        bv.build(build_type)
+        bv = BinVis(validated_path, output_base, format=fmt, styleid=style, validate_paths=False)
+        bv.load()
+        getattr(bv, f"visualize_{chart}")(output=output_path)
         return output_path
 
     await run_with_timeout(_sync_build)
@@ -65,6 +70,7 @@ async def _build_binary_viz(file_path: str, build_type: str, output_prefix: str,
 async def analyze_binary_entropy(
     file_path: str,
     format: str = "png",
+    style: str = "",
 ):
     """Generate an entropy visualization of a binary file.
 
@@ -74,9 +80,10 @@ async def analyze_binary_entropy(
     Args:
         file_path: Path to the binary file to analyze.
         format: Output format — png, pdf, or svg.
+        style: Style preset (bv_default, bv_dark, bv_security, ...; "" for default).
     """
     try:
-        return await _build_binary_viz(file_path, "entropy", "binary_entropy", format)
+        return await _build_binary_viz(file_path, "entropy", "binary_entropy", format, style)
     except Exception as e:
         return format_error(e)
 
@@ -86,6 +93,7 @@ async def analyze_binary_entropy(
 async def analyze_binary_distribution(
     file_path: str,
     format: str = "png",
+    style: str = "",
 ):
     """Generate a byte distribution visualization of a binary file.
 
@@ -95,9 +103,12 @@ async def analyze_binary_distribution(
     Args:
         file_path: Path to the binary file to analyze.
         format: Output format — png, pdf, or svg.
+        style: Style preset (bv_default, bv_dark, bv_security, ...; "" for default).
     """
     try:
-        return await _build_binary_viz(file_path, "distribution", "binary_distribution", format)
+        return await _build_binary_viz(
+            file_path, "distribution", "binary_distribution", format, style
+        )
     except Exception as e:
         return format_error(e)
 
@@ -107,6 +118,7 @@ async def analyze_binary_distribution(
 async def analyze_binary_heatmap(
     file_path: str,
     format: str = "png",
+    style: str = "",
 ):
     """Generate a byte heatmap visualization of a binary file.
 
@@ -116,9 +128,35 @@ async def analyze_binary_heatmap(
     Args:
         file_path: Path to the binary file to analyze.
         format: Output format — png, pdf, or svg.
+        style: Style preset (bv_default, bv_dark, bv_security, ...; "" for default).
     """
     try:
-        return await _build_binary_viz(file_path, "heatmap", "binary_heatmap", format)
+        return await _build_binary_viz(file_path, "heatmap", "binary_heatmap", format, style)
+    except Exception as e:
+        return format_error(e)
+
+
+@mcp.tool()
+@log_tool_call
+async def analyze_binary_digraph(
+    file_path: str,
+    format: str = "png",
+    style: str = "",
+):
+    """Generate a byte-pair (digraph) plot of a binary file.
+
+    A 256x256 image of how often byte B follows byte A, on a log scale, with
+    guides at the printable ASCII range. Machine code, ASCII text, UTF-16,
+    compressed and encrypted data each leave a distinct pattern, which makes
+    it a quick format-recognition view; random data looks uniform.
+
+    Args:
+        file_path: Path to the binary file to analyze.
+        format: Output format — png, pdf, or svg.
+        style: Style preset (bv_default, bv_dark, bv_security, ...; "" for default).
+    """
+    try:
+        return await _build_binary_viz(file_path, "digraph", "binary_digraph", format, style)
     except Exception as e:
         return format_error(e)
 
@@ -128,17 +166,46 @@ async def analyze_binary_heatmap(
 async def analyze_binary_all(
     file_path: str,
     format: str = "png",
-):
-    """Generate all binary visualizations (entropy, distribution, heatmap).
+    style: str = "",
+) -> str:
+    """Generate every binary chart in one call.
 
-    Produces a comprehensive visual analysis of the binary file in one call.
+    Entropy, byte distribution, wind rose (polar histogram of byte values),
+    heatmap and byte-pair digraph.
 
     Args:
         file_path: Path to the binary file to analyze.
         format: Output format — png, pdf, or svg.
+        style: Style preset (bv_default, bv_dark, bv_security, ...; "" for default).
+
+    Returns:
+        JSON ``{"charts": [...]}``: per chart its ``type`` and ``output_path``
+        and ``size_bytes`` (file output mode), or ``data_base64`` (base64 mode).
     """
     try:
-        return await _build_binary_viz(file_path, "all", "binary_all", format)
+        validate_format(format, ALLOWED_BINARY_FORMATS)
+        check_rate_limit("binary_all")
+        validated_path = str(validate_input_path(file_path))
+        handler = OutputHandler()
+        output_base = str(Path(handler.make_output_path("binary_all", format)).with_suffix(""))
+
+        def _sync_build():
+            bv = BinVis(
+                validated_path, output_base, format=format, styleid=style, validate_paths=False
+            )
+            return bv.visualize_all(output_prefix=output_base)
+
+        paths = await run_with_timeout(_sync_build)
+        charts = []
+        for chart, path in zip(BINARY_CHARTS, paths, strict=True):
+            entry = {"type": chart, "format": format}
+            if handler.mode == "file":
+                entry.update(output_path=path, size_bytes=Path(path).stat().st_size)
+            else:
+                entry["data_base64"] = base64.b64encode(Path(path).read_bytes()).decode("ascii")
+                Path(path).unlink(missing_ok=True)
+            charts.append(entry)
+        return json.dumps({"charts": charts}, indent=2)
     except Exception as e:
         return format_error(e)
 

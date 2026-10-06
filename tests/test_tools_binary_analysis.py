@@ -14,6 +14,7 @@
 """Tests for binary analysis tools."""
 
 import json
+import os
 
 import pytest
 
@@ -29,6 +30,7 @@ async def test_analyze_binary_entropy(sample_binary_file):
     result = await analyze_binary_entropy(sample_binary_file, format="png")
     parsed = json.loads(result)
     assert "output_path" in parsed
+    assert os.path.getsize(parsed["output_path"]) > 0  # the reported path is the file written
 
 
 @skip_no_graphviz
@@ -40,6 +42,7 @@ async def test_analyze_binary_distribution(sample_binary_file):
     result = await analyze_binary_distribution(sample_binary_file, format="png")
     parsed = json.loads(result)
     assert "output_path" in parsed
+    assert os.path.getsize(parsed["output_path"]) > 0  # the reported path is the file written
 
 
 @skip_no_graphviz
@@ -51,17 +54,18 @@ async def test_analyze_binary_heatmap(sample_binary_file):
     result = await analyze_binary_heatmap(sample_binary_file, format="png")
     parsed = json.loads(result)
     assert "output_path" in parsed
+    assert os.path.getsize(parsed["output_path"]) > 0  # the reported path is the file written
 
 
 @skip_no_graphviz
 @pytest.mark.asyncio
 async def test_analyze_binary_all(sample_binary_file):
-    """analyze_binary_all produces output file."""
+    """analyze_binary_all produces one file per chart."""
     from usecvislib_mcp.tools.binary_analysis import analyze_binary_all
 
     result = await analyze_binary_all(sample_binary_file, format="png")
-    parsed = json.loads(result)
-    assert "output_path" in parsed
+    charts = json.loads(result)["charts"]
+    assert all(os.path.getsize(c["output_path"]) > 0 for c in charts)
 
 
 @pytest.mark.asyncio
@@ -83,3 +87,48 @@ async def test_get_binary_stats_nonexistent():
     result = await get_binary_stats("/nonexistent/file.bin")
     parsed = json.loads(result)
     assert "error" in parsed
+
+
+@skip_no_graphviz
+@pytest.mark.asyncio
+async def test_analyze_binary_digraph(sample_binary_file):
+    """The byte-pair digraph renders to the reported path, in every format and a style."""
+    from usecvislib_mcp.tools.binary_analysis import analyze_binary_digraph
+
+    for fmt in ("png", "svg", "pdf"):
+        parsed = json.loads(
+            await analyze_binary_digraph(sample_binary_file, format=fmt, style="bv_dark")
+        )
+        assert "error" not in parsed, parsed
+        assert parsed["output_path"].endswith(f".{fmt}")
+        assert os.path.getsize(parsed["output_path"]) > 0
+
+
+@skip_no_graphviz
+@pytest.mark.asyncio
+async def test_analyze_binary_all_returns_every_chart(sample_binary_file):
+    from usecvislib_mcp.tools.binary_analysis import analyze_binary_all
+
+    parsed = json.loads(await analyze_binary_all(sample_binary_file, style="bv_security"))
+    charts = parsed["charts"]
+    assert [c["type"] for c in charts] == [
+        "entropy",
+        "distribution",
+        "windrose",
+        "heatmap",
+        "digraph",
+    ]
+    for chart in charts:
+        assert os.path.getsize(chart["output_path"]) == chart["size_bytes"] > 0
+
+
+@pytest.mark.asyncio
+async def test_analyze_binary_all_base64_mode(sample_binary_file, monkeypatch):
+    import base64
+
+    from usecvislib_mcp.tools.binary_analysis import analyze_binary_all
+
+    monkeypatch.setenv("USECVISLIB_MCP_OUTPUT_MODE", "base64")
+    charts = json.loads(await analyze_binary_all(sample_binary_file))["charts"]
+    assert len(charts) == 5
+    assert all(base64.b64decode(c["data_base64"]).startswith(b"\x89PNG") for c in charts)

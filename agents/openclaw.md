@@ -41,6 +41,6 @@ OpenClaw reads these files for domain knowledge:
 
 ## Notes
 
-- The MCP server exposes 63 tools, 19 resources, and 10 prompt templates
+- The MCP server exposes 64 tools, 19 resources, and 10 prompt templates
 - Tool function names (e.g., `generate_attack_tree`) are identical across all agent integrations
 - All file I/O is local — generated images write to the configured output directory

@@ -2,7 +2,7 @@
 
 MCP (Model Context Protocol) server for the [USecVisLib](https://github.com/vulnex/usecvislib) security visualization library.
 
-Provides 63 tools, 19 resources, and 10 prompt templates that give AI assistants full access to security visualization capabilities — attack trees, attack graphs, threat models, MAESTRO agentic-AI threat models, kill chains (MITRE ATT&CK), incident timelines, vulnerability dependency trees, cloud diagrams, binary analysis, privilege gradients, and more.
+Provides 64 tools, 19 resources, and 10 prompt templates that give AI assistants full access to security visualization capabilities — attack trees, attack graphs, threat models, MAESTRO agentic-AI threat models, kill chains (MITRE ATT&CK), incident timelines, vulnerability dependency trees, cloud diagrams, binary analysis, privilege gradients, and more.
 
 See every template and style preset rendered in the **[USecVisLib gallery](https://vulnex.github.io/usecvislib-gallery/)**.
 
@@ -20,7 +20,7 @@ See every template and style preset rendered in the **[USecVisLib gallery](https
 - [Transport Options](#transport-options)
 - [Authentication](#authentication)
 - [Configuration Reference](#configuration-reference)
-- [Tools (63)](#tools-63)
+- [Tools (64)](#tools-64)
   - [Render engines](#render-engines)
 - [Resources (19)](#resources-19)
 - [Prompts (10)](#prompts-10)
@@ -283,7 +283,7 @@ The [`agents/`](agents/) directory contains setup instructions for specific AI c
 | **OpenClaw** | [`agents/openclaw.md`](agents/openclaw.md) | YAML config |
 | **OpenAI Codex** | [`agents/openai.yaml`](agents/openai.yaml) | YAML dependency spec |
 
-Each guide covers MCP server configuration, skill/knowledge loading, and agent-specific notes. All agents connect to the same 63 tools with identical function names.
+Each guide covers MCP server configuration, skill/knowledge loading, and agent-specific notes. All agents connect to the same 64 tools with identical function names.
 
 ## Transport Options
 
@@ -328,7 +328,7 @@ Auth is ignored in `stdio` mode (local pipe — no network exposure).
 | `USECVISLIB_MCP_ALLOWED_INPUT_DIRS` | *(empty)* | Comma-separated allowed dirs for binary file access (unrestricted when empty) |
 | `USECVISLIB_MCP_RATE_LIMIT` | `60` | Max tool calls per minute per tool (0 = unlimited) |
 
-## Tools (63)
+## Tools (64)
 
 ### Render engines
 
@@ -368,13 +368,14 @@ Every engine, view and preset is shown in the [gallery](https://vulnex.github.io
 |------|-------------|
 | `render_mermaid` | Render a Mermaid diagram from source text |
 
-### Binary Analysis (5)
+### Binary Analysis (6)
 | Tool | Description |
 |------|-------------|
 | `analyze_binary_entropy` | Entropy visualization of a binary file |
 | `analyze_binary_distribution` | Byte distribution visualization |
 | `analyze_binary_heatmap` | Byte heatmap visualization |
-| `analyze_binary_all` | All binary visualizations at once |
+| `analyze_binary_digraph` | Byte-pair (digraph) plot: how often byte B follows byte A |
+| `analyze_binary_all` | All five binary charts at once, one result per chart |
 | `get_binary_stats` | Statistical summary of a binary file |
 
 ### Cloud Diagrams (6)

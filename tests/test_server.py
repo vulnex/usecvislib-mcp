@@ -48,10 +48,11 @@ def test_tools_registered():
         "analyze_stride_threats",
         # Mermaid (1)
         "render_mermaid",
-        # Binary Analysis (5)
+        # Binary Analysis (6)
         "analyze_binary_entropy",
         "analyze_binary_distribution",
         "analyze_binary_heatmap",
+        "analyze_binary_digraph",
         "analyze_binary_all",
         "get_binary_stats",
         # Cloud Diagrams (6)

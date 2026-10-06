@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Requires usecvislib 0.6.0.
 
 ### Added
-- 14 tools for the usecvislib 0.5/0.6 modules (63 tools in total):
+- 15 tools for the usecvislib 0.5/0.6 features (64 tools in total):
   - Kill chain / MITRE ATT&CK: `generate_kill_chain`, `validate_kill_chain`, `get_kill_chain_stats`, `analyze_kill_chain_coverage`
   - Incident timeline: `generate_incident_timeline` (swimlane, gantt, vertical, compact), `validate_incident_timeline`, `get_incident_timeline_stats`
   - Vulnerability dependency tree: `generate_vuln_tree` (tree, vulnerable_only, critical_path), `validate_vuln_tree`, `get_vuln_tree_stats`
   - MAESTRO agentic-AI threat model: `generate_maestro_threat_model` (layered, graph, heatmap), `validate_maestro_threat_model`, `get_maestro_stats`, `export_maestro` (to STRIDE, attack graph or privilege gradient)
+  - Binary analysis: `analyze_binary_digraph` (byte-pair plot)
+- `style` parameter (bv_* presets) on the binary analysis tools.
 - `render_engine` parameter (`graphviz` or `svg`) on the generate tools whose modules support usecvislib's SVG engine; the tool's default Graphviz style switches to `sv_default` automatically.
 - `shine` parameter to post-process Graphviz SVG output.
 - Schema resources for the four new modules (19 resources) and their style presets in the styles resources.
@@ -33,6 +35,7 @@ Requires usecvislib 0.6.0.
 - Component diagram schema: lists the valid component types and the `bidirectional` connection style.
 - `detect_config_type` used its own outdated rules: it recognised none of the newer modules and expected the old component/dependency formats. It now uses usecvislib's config detection and reports kill_chain, incident_timeline, vuln_tree, maestro, access_graph and mermaid too.
 - `convert_to_mermaid` passed its `viz_type` hint to usecvislib as the Mermaid diagram type. The hint is now checked against the detected type (a mismatch returns an error), the response includes the detected `viz_type`, and the docs list every type the converter supports.
+- Binary analysis tools reported an output path that was never written (`size_bytes: 0`; "Output file not found" in base64 mode): usecvislib names its files `<base>_<chart>.<format>`. Each chart is now written to the reported path, and `analyze_binary_all` returns one entry per chart (`{"charts": [...]}`, five charts).
 - `generate_report` and `compare_visualizations` accept `kill_chain`, `incident_timeline`, `vuln_tree` and `maestro` (with the matching usecvislib fixes, reports list only the files they wrote).
 
 ## [0.4.0] - 2026-03-01

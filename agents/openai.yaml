@@ -18,5 +18,5 @@ dependencies:
     name: usecvislib-mcp
     install: pip install usecvislib-mcp
     command: usecvislib-mcp
-    tools: 63
+    tools: 64
     resources: 15
