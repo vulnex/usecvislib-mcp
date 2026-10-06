@@ -88,10 +88,8 @@ async def test_detect_config_type_on_bundled_templates(directory, viz_type):
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize(
-    "viz_type", ["kill_chain", "incident_timeline", "vuln_tree", "maestro", "component_diagram"]
-)
-async def test_convert_to_mermaid_newer_modules(request, viz_type):
+@pytest.mark.parametrize("viz_type", list(FIXTURES))
+async def test_convert_to_mermaid_every_module(request, viz_type):
     from usecvislib_mcp.tools.utilities import convert_to_mermaid
 
     parsed = json.loads(await convert_to_mermaid(request.getfixturevalue(FIXTURES[viz_type])))
