@@ -147,8 +147,9 @@ async def render_drift(
 ) -> str:
     """Draw the drift between two versions of an attack graph or privilege gradient.
 
-    One picture of the merged graph: added elements in green with '+', removed
-    ones faded in red with '−', modified ones in amber with '~'. For privilege
+    One picture of the merged graph: added elements outlined in pink-red with
+    '+', removed ones faded grey and dashed with '−', modified ones outlined in
+    violet with '~' (diff_colors changes the colors). For privilege
     gradients, tiering violations are compared too: new ones are labelled
     'NEW INVERSION', fixed ones 'FIXED INVERSION', and ones whose severity or
     trust gap changed '~ INVERSION (old → new)'.
