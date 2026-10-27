@@ -162,11 +162,6 @@ async def test_privilege_gradient_keep_ids_graphviz(grouped_gradient_config):
     assert result["size_bytes"] > 0
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="usecvislib SVG painter: KeyError when keep='inversions' keeps an ungrouped "
-    "component (svgengine/painters/privilegegradient.py, view.groups[None])",
-)
 @skip_no_privilege_gradient
 @skip_no_graphviz
 @pytest.mark.asyncio
