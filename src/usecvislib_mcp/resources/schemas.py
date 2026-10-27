@@ -83,6 +83,39 @@ ATTACK_TREE_SCHEMA = {
     },
 }
 
+GROUPING_NOTE = (
+    "Grouping is opt-in. Expanded groups are drawn as clusters; collapsed groups become one "
+    "summary node with member counts and the worst CVSS (attack graph) or the inversions "
+    "its members take part in (privilege gradient). Edges inside a collapsed group are "
+    "dropped, the rest point at the summary, and duplicates merge with an '×N' label. "
+    "The generate tools take the same options as parameters (they override the config)."
+)
+
+INFERRED_FIELDS = {
+    "inferred": {
+        "type": "boolean",
+        "default": False,
+        "description": "A hypothesis, not an observed fact: drawn muted and dashed with "
+        "an '(inferred)' line",
+    },
+    "confidence": {
+        "type": "string",
+        "description": "'hypothesis' is the same as inferred = true",
+    },
+}
+
+SOURCE_FIELDS = {
+    "sources": {
+        "type": "list of strings",
+        "description": "Tools or analysts that reported this element; with 2 or more the "
+        "node shows a 'confirmed by N sources' marker (✓N)",
+    },
+    "source_count": {
+        "type": "integer",
+        "description": "Number of confirming sources, when the list is not given",
+    },
+}
+
 ATTACK_GRAPH_SCHEMA = {
     "description": "Configuration schema for attack graph visualizations",
     "format": "TOML, JSON, or YAML",
@@ -91,6 +124,23 @@ ATTACK_GRAPH_SCHEMA = {
             "description": "Graph metadata",
             "fields": {
                 "name": {"type": "string", "required": True},
+                "group_by": {
+                    "type": "string",
+                    "description": "Cluster hosts by a host field (e.g. 'zone'), or by network "
+                    "with 'ip/N' (e.g. 'ip/24') or 'ip6/N'. Vulnerabilities, services and "
+                    "privileges follow their host",
+                },
+                "collapse": {
+                    "type": "boolean, string or list of group ids",
+                    "description": "true / 'all', 'auto' (largest groups first until at most "
+                    "max_nodes nodes are drawn), 'none', or group ids (a field value, or a "
+                    "network such as '10.0.1.0/24')",
+                },
+                "max_nodes": {
+                    "type": "integer",
+                    "default": 300,
+                    "description": "Node target for collapse = 'auto'",
+                },
             },
         },
         "hosts": {
@@ -100,6 +150,10 @@ ATTACK_GRAPH_SCHEMA = {
                 "label": {"type": "string", "required": True},
                 "ip": {"type": "string"},
                 "zone": {"type": "string", "values": ["internal", "dmz", "external"]},
+                "group": {
+                    "type": "string",
+                    "description": "Explicit group; wins over graph.group_by",
+                },
             },
         },
         "vulnerabilities": {
@@ -138,6 +192,7 @@ ATTACK_GRAPH_SCHEMA = {
                 "label": {"type": "string", "required": True},
                 "preconditions": {"type": "list of strings"},
                 "postconditions": {"type": "list of strings"},
+                **INFERRED_FIELDS,
             },
         },
         "network_edges": {
@@ -146,9 +201,16 @@ ATTACK_GRAPH_SCHEMA = {
                 "from": {"type": "string", "required": True},
                 "to": {"type": "string", "required": True},
                 "label": {"type": "string"},
+                **INFERRED_FIELDS,
             },
         },
     },
+    "common_fields": {
+        "description": "Accepted on hosts, vulnerabilities, privileges, services and exploits",
+        "fields": SOURCE_FIELDS,
+    },
+    "grouping": GROUPING_NOTE,
+    "drift": "render_drift draws the changes between two versions of an attack graph.",
 }
 
 THREAT_MODEL_SCHEMA = {
@@ -370,6 +432,31 @@ PRIVILEGE_GRADIENT_SCHEMA = {
             "fields": {
                 "name": {"type": "string", "required": True},
                 "description": {"type": "string"},
+                "group_by": {
+                    "type": "string",
+                    "description": "Group components within their zone by this component "
+                    "field (e.g. 'role'). A group never spans zones: ids are '<zone>/<value>'",
+                },
+                "collapse": {
+                    "type": "boolean, string or list of group ids",
+                    "description": "true / 'all', 'auto' (with max_nodes), 'none', or group "
+                    "ids ('<zone>/<value>')",
+                },
+                "max_nodes": {
+                    "type": "integer",
+                    "default": 300,
+                    "description": "Component target for collapse = 'auto'",
+                },
+                "keep": {
+                    "type": "string",
+                    "values": ["inversions"],
+                    "description": "Keep every component taking part in an inversion drawn "
+                    "by name next to its collapsed group's card",
+                },
+                "keep_ids": {
+                    "type": "list of component IDs",
+                    "description": "Components kept drawn the same way",
+                },
             },
         },
         "zones": {
@@ -394,6 +481,10 @@ PRIVILEGE_GRADIENT_SCHEMA = {
                     "required": True,
                     "description": "Zone this component belongs to",
                 },
+                "group": {
+                    "type": "string",
+                    "description": "Explicit group within the zone; wins over gradient.group_by",
+                },
             },
         },
         "influences": {
@@ -402,9 +493,33 @@ PRIVILEGE_GRADIENT_SCHEMA = {
                 "from": {"type": "string", "required": True, "description": "Source component ID"},
                 "to": {"type": "string", "required": True, "description": "Target component ID"},
                 "label": {"type": "string"},
+                "type": {
+                    "type": "string",
+                    "description": "Influence type: data, feedback, resource or control by "
+                    "default (an optional 'influence_types' list defines others). The SVG "
+                    "engine draws data solid, feedback dashed, resource dotted, control thick",
+                },
             },
         },
     },
+    "grouping": GROUPING_NOTE,
+    "drift": "render_drift draws the changes between two versions, with new, fixed and "
+    "changed (severity or trust gap) inversions.",
+    "styles": [
+        "pg_default",
+        "pg_dark",
+        "pg_security",
+        "pg_neon",
+        "pg_corporate",
+        "sv_default",
+        "sv_dark",
+        "sv_security",
+        "sv_corporate",
+        "sv_minimal",
+    ],
+    "render_engine": "render_engine='svg': trust zones as clusters ordered by trust level, "
+    "components as cards in their zone's color, inversions in red with their severity "
+    "(sv_* presets).",
 }
 
 CUSTOM_DIAGRAM_SCHEMA = {
@@ -592,9 +707,11 @@ KILL_CHAIN_SCHEMA = {
                 "framework": {
                     "type": "string",
                     "default": "kill_chain",
-                    "values": ["kill_chain", "attack", "custom"],
+                    "values": ["kill_chain", "attack", "atlas", "custom"],
                     "description": "kill_chain = Lockheed Martin phases, "
-                    "attack = MITRE ATT&CK tactics, custom = the 'phases' list below",
+                    "attack = MITRE ATT&CK tactics, atlas = the 16 MITRE ATLAS tactics "
+                    "(AI systems; a phase may be a tactic name or ID such as AML.TA0004), "
+                    "custom = the 'phases' list below",
                 },
                 "phases": {
                     "type": "list of strings",
@@ -617,6 +734,7 @@ KILL_CHAIN_SCHEMA = {
                 "detection": {"type": "string", "description": "How it is detected"},
                 "mitigation": {"type": "string", "description": "How it is mitigated"},
                 "description": {"type": "string"},
+                **INFERRED_FIELDS,
             },
         },
         "incidents": {
@@ -681,6 +799,14 @@ INCIDENT_TIMELINE_SCHEMA = {
                     "description": "Optional, e.g. '45m' or '2h' (drawn as a bar)",
                 },
                 "technique": {"type": "string", "description": "MITRE ATT&CK technique ID"},
+                "technique_inferred": {
+                    "type": "boolean",
+                    "description": "The technique tag is a hypothesis: it reads 'T1059 (inferred)'",
+                },
+                "technique_confidence": {
+                    "type": "string",
+                    "description": "'hypothesis' is the same as technique_inferred = true",
+                },
                 "source": {"type": "string", "description": "Detection source, e.g. EDR, UEBA"},
                 "description": {"type": "string"},
                 "indicators": {"type": "list of strings"},

@@ -72,3 +72,33 @@ async def test_analyze_kill_chain_coverage(sample_kill_chain_config):
     assert parsed["undetected"] == ["T2"]
     assert set(parsed["unmitigated"]) == {"T1", "T2"}
     assert parsed["critical_gaps"] == []
+
+
+@skip_no_graphviz
+@pytest.mark.asyncio
+async def test_atlas_framework_and_inferred_technique():
+    """framework = 'atlas' lays techniques on the ATLAS tactics; inferred ones are counted."""
+    from usecvislib_mcp.tools.kill_chain import generate_kill_chain, get_kill_chain_stats
+
+    config = {
+        "killchain": {"name": "Agent prompt injection", "framework": "atlas"},
+        "techniques": {
+            "AML.T0051": {
+                "name": "LLM Prompt Injection",
+                "phase": "AML.TA0005",
+                "severity": "critical",
+            },
+            "AML.T0054": {
+                "name": "LLM Jailbreak",
+                "phase": "Privilege Escalation",
+                "inferred": True,
+            },
+        },
+    }
+    parsed = json.loads(await generate_kill_chain(config, format="svg", render_engine="svg"))
+    assert "error" not in parsed, parsed
+    svg = Path(parsed["output_path"]).read_text(encoding="utf-8")
+    assert "usv-node--inferred" in svg
+    stats = json.loads(await get_kill_chain_stats(config))
+    assert stats["framework"] == "atlas"
+    assert stats["inferred_techniques"] == 1

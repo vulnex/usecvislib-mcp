@@ -365,7 +365,10 @@ detection and mitigation coverage, so gaps in the defense stand out.
 ## Step-by-Step Process
 
 1. **Pick the framework**: `kill_chain` (Lockheed Martin's 7 phases),
-   `attack` (MITRE ATT&CK tactics), or `custom` with your own `phases` list.
+   `attack` (MITRE ATT&CK tactics), `atlas` (the 16 MITRE ATLAS tactics, for
+   attacks on AI systems; phases may be tactic names or IDs like AML.TA0004),
+   or `custom` with your own `phases` list. Mark a technique `inferred = true`
+   when it is a hypothesis rather than an observed fact.
 2. **Add techniques** keyed by ID (e.g. T1566.001) with `name`, `phase`,
    `severity`, and whether each is `detected` and `mitigated`.
 3. **Add incidents** (optional): an ordered list of technique IDs per incident

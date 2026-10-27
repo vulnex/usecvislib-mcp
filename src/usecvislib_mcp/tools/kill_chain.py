@@ -32,12 +32,13 @@ async def generate_kill_chain(
     """Generate a kill chain / MITRE ATT&CK visualization from a configuration dictionary.
 
     Lays techniques out in phase columns (Lockheed Martin Cyber Kill Chain,
-    MITRE ATT&CK tactics, or a custom phase axis), colors them by detection
-    and mitigation coverage, and draws incident paths across phases. The config
-    should contain a 'killchain' section (name, framework = kill_chain | attack
-    | custom, phases for custom), 'techniques' keyed by ID (name, phase,
-    severity, detected, mitigated) and optional 'incidents' (id, name,
-    techniques in order).
+    MITRE ATT&CK tactics, MITRE ATLAS tactics for AI systems, or a custom phase
+    axis), colors them by detection and mitigation coverage, and draws incident
+    paths across phases. The config should contain a 'killchain' section (name,
+    framework = kill_chain | attack | atlas | custom, phases for custom),
+    'techniques' keyed by ID (name, phase, severity, detected, mitigated;
+    inferred = true marks a hypothesis, drawn faded and dashed) and optional
+    'incidents' (id, name, techniques in order).
 
     Args:
         config: Kill chain configuration dict.
