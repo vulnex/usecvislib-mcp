@@ -36,7 +36,8 @@ async def generate_component_diagram(
 
     Creates layered architecture diagrams showing components, layers,
     and their connections using Graphviz. The config should contain
-    'diagram', 'layers', 'components', and 'connections' sections.
+    'title', a 'layers' list (each layer with its 'components'), and
+    'connections'.
 
     Args:
         config: Component diagram configuration dict.
@@ -111,7 +112,8 @@ async def generate_dependency_graph(
 
     Creates module dependency visualizations with force-directed layout,
     SLOC-based node sizing, and circular dependency highlighting. The
-    config should contain 'graph', 'modules', and 'dependencies' sections.
+    config should contain 'title', a 'modules' list, 'dependencies', and
+    optionally 'circular'.
 
     Args:
         config: Dependency graph configuration dict.
