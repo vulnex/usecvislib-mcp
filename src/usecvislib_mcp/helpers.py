@@ -213,6 +213,38 @@ def temp_config_file(config: dict, suffix: str = ".json"):
 
 RENDER_ENGINES = frozenset({"graphviz", "svg"})
 
+KEEP_VALUES = frozenset({"inversions"})
+MAX_GROUPING_NODES = 10000
+
+
+def grouping_options(
+    group_by: str = "",
+    collapse: str | list[str] | bool | None = None,
+    max_nodes: int | None = None,
+    keep: str = "",
+    keep_ids: list[str] | None = None,
+) -> dict:
+    """Validate the grouping / collapse options and return the viz kwargs that are set.
+
+    ``collapse`` is passed through as usecvislib reads it: "none", "all" (or
+    True), "auto" (with ``max_nodes``), or a list of group ids. ``keep`` and
+    ``keep_ids`` apply to privilege gradients only.
+    """
+    options: dict[str, Any] = {}
+    if group_by:
+        options["group_by"] = group_by
+    if collapse not in (None, "", []):
+        options["collapse"] = collapse
+    if max_nodes is not None:
+        options["max_nodes"] = validate_int_range(max_nodes, "max_nodes", 1, MAX_GROUPING_NODES)
+    if keep:
+        if keep not in KEEP_VALUES:
+            raise ValueError(f"Invalid keep '{keep}'. Allowed: {', '.join(sorted(KEEP_VALUES))}")
+        options["keep"] = keep
+    if keep_ids:
+        options["keep_ids"] = list(keep_ids)
+    return options
+
 
 def resolve_render_options(
     viz_class, styleid: str, fmt: str, render_engine: str, shine: bool
@@ -294,11 +326,13 @@ async def build_and_analyze(
     viz_class,
     config: dict,
     analysis_method: str,
+    *,
+    viz_options: dict | None = None,
     **method_kwargs,
 ) -> str:
     """Run an analysis method on a visualization class.
 
-    1. Creates temp config, instantiates viz class
+    1. Creates temp config, instantiates viz class (with ``viz_options``, e.g. group_by)
     2. Calls viz.load() then getattr(viz, analysis_method)(**kwargs)
     3. Returns the analysis result as JSON
     """
@@ -317,6 +351,7 @@ async def build_and_analyze(
                 outputfile="/dev/null",
                 format="png",
                 validate_paths=False,
+                **(viz_options or {}),
             )
             viz.load()
             method = getattr(viz, analysis_method)

@@ -17,7 +17,13 @@ import json
 
 from usecvislib import PrivilegeGradient
 
-from ..helpers import build_and_analyze, build_visualization, format_error, log_tool_call
+from ..helpers import (
+    build_and_analyze,
+    build_visualization,
+    format_error,
+    grouping_options,
+    log_tool_call,
+)
 from ..server import mcp
 
 
@@ -27,24 +33,51 @@ async def generate_privilege_gradient(
     config: dict,
     format: str = "png",
     style: str = "pg_default",
+    render_engine: str = "graphviz",
     shine: bool = False,
+    group_by: str = "",
+    collapse: str | list[str] | bool | None = None,
+    max_nodes: int | None = None,
+    keep: str = "",
+    keep_ids: list[str] | None = None,
 ):
     """Generate a privilege gradient graph from a configuration dictionary.
 
     Visualizes trust zones, components, and influence relationships with
     automatic privilege inversion detection. The config should contain
-    'gradient', 'zones', 'components', and 'influences' sections.
+    'gradient', 'zones', 'components', and 'influences' sections. Components
+    can be grouped within their zone (groups never span zones), and groups
+    collapsed into one summary component each; inversions on merged edges stay exact.
 
     Args:
         config: Privilege gradient configuration dict.
         format: Output format — png, pdf, svg, or dot.
-        style: Style preset ID (e.g. pg_default).
+        style: Style preset ID (e.g. pg_default; sv_* with render_engine='svg').
+        render_engine: graphviz (default) or svg (the stdlib SVG engine: zones as
+               clusters ordered by trust level, influence styles by type,
+               self-contained SVG; png/pdf via cairosvg; sv_* style presets).
         shine: Post-process Graphviz SVG output with the shine pack (fonts, shadows,
                hover). Requires format='svg' and render_engine='graphviz'.
+        group_by: Group components within their zone by this component field
+               (e.g. 'role'); a component's own 'group' wins. Group ids are
+               '<zone>/<value>'. Overrides gradient.group_by.
+        collapse: 'all' (or true), 'auto' (with max_nodes), 'none', or a list of
+               group ids. Overrides gradient.collapse.
+        max_nodes: Component target for collapse='auto' (default 300).
+        keep: 'inversions' keeps every component taking part in an inversion
+               drawn individually next to its collapsed group's card.
+        keep_ids: Component ids kept drawn the same way.
     """
     try:
         return await build_visualization(
-            PrivilegeGradient, config, "privilege_gradient", fmt=format, styleid=style, shine=shine
+            PrivilegeGradient,
+            config,
+            "privilege_gradient",
+            fmt=format,
+            styleid=style,
+            render_engine=render_engine,
+            shine=shine,
+            **grouping_options(group_by, collapse, max_nodes, keep, keep_ids),
         )
     except Exception as e:
         return format_error(e)
@@ -71,14 +104,22 @@ async def validate_privilege_gradient(config: dict) -> str:
 
 @mcp.tool()
 @log_tool_call
-async def get_privilege_gradient_stats(config: dict) -> str:
+async def get_privilege_gradient_stats(config: dict, group_by: str = "") -> str:
     """Get statistics about a privilege gradient — zone counts, component counts, etc.
 
     Args:
         config: Privilege gradient configuration to analyze.
+        group_by: Component field to group by; adds per-group counts under
+               'groups' (also used when the config sets gradient.group_by or
+               components have a 'group').
     """
     try:
-        return await build_and_analyze(PrivilegeGradient, config, "get_stats")
+        return await build_and_analyze(
+            PrivilegeGradient,
+            config,
+            "get_stats",
+            viz_options=grouping_options(group_by),
+        )
     except Exception as e:
         return format_error(e)
 

@@ -21,6 +21,7 @@ from ..helpers import (
     build_and_analyze,
     build_visualization,
     format_error,
+    grouping_options,
     log_tool_call,
     validate_int_range,
 )
@@ -35,11 +36,16 @@ async def generate_attack_graph(
     style: str = "ag_default",
     render_engine: str = "graphviz",
     shine: bool = False,
+    group_by: str = "",
+    collapse: str | list[str] | bool | None = None,
+    max_nodes: int | None = None,
 ):
     """Generate an attack graph visualization from a configuration dictionary.
 
     The config should contain 'graph', 'hosts', 'vulnerabilities', 'privileges',
-    'services', 'exploits', and 'network_edges' sections.
+    'services', 'exploits', and 'network_edges' sections. Hosts (and what sits on
+    them) can be grouped into clusters, and groups collapsed into one summary node
+    each, to keep large networks readable.
 
     Args:
         config: Attack graph configuration dict.
@@ -49,6 +55,13 @@ async def generate_attack_graph(
                self-contained SVG; png/pdf via cairosvg; sv_* style presets).
         shine: Post-process Graphviz SVG output with the shine pack (fonts, shadows,
                hover). Requires format='svg' and render_engine='graphviz'.
+        group_by: Cluster hosts by a host field (e.g. 'zone'), or by network with
+               'ip/N' (e.g. 'ip/24') or 'ip6/N'. Overrides graph.group_by.
+        collapse: Draw groups as one summary node each: 'all' (or true), 'auto'
+               (largest groups first until at most max_nodes nodes remain), 'none',
+               or a list of group ids (a field value, or a network like
+               '10.0.1.0/24'). Overrides graph.collapse.
+        max_nodes: Node target for collapse='auto' (default 300).
     """
     try:
         return await build_visualization(
@@ -59,6 +72,7 @@ async def generate_attack_graph(
             styleid=style,
             render_engine=render_engine,
             shine=shine,
+            **grouping_options(group_by, collapse, max_nodes),
         )
     except Exception as e:
         return format_error(e)
@@ -85,14 +99,18 @@ async def validate_attack_graph(config: dict) -> str:
 
 @mcp.tool()
 @log_tool_call
-async def get_attack_graph_stats(config: dict) -> str:
+async def get_attack_graph_stats(config: dict, group_by: str = "") -> str:
     """Get statistics about an attack graph — node counts, edge counts, etc.
 
     Args:
         config: Attack graph configuration to analyze.
+        group_by: Host field (or 'ip/N' / 'ip6/N') to group by; adds per-group
+               counts under 'groups' (also used when the config sets graph.group_by).
     """
     try:
-        return await build_and_analyze(AttackGraphs, config, "get_stats")
+        return await build_and_analyze(
+            AttackGraphs, config, "get_stats", viz_options=grouping_options(group_by)
+        )
     except Exception as e:
         return format_error(e)
 

@@ -73,10 +73,11 @@ def test_tools_registered():
         "list_shapes",
         # Batch (1)
         "batch_process",
-        # Analysis (3)
+        # Analysis (4)
         "find_chokepoints",
         "analyze_centrality",
         "compare_visualizations",
+        "render_drift",
     }
 
     # Tools that depend on optional usecvislib classes

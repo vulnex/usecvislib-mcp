@@ -21,6 +21,7 @@ from usecvislib import process_batch
 
 from ..config import get_output_dir, get_temp_dir
 from ..helpers import (
+    RENDER_ENGINES,
     check_rate_limit,
     format_error,
     log_tool_call,
@@ -56,6 +57,7 @@ async def batch_process(
     format: str = "png",
     style: str = "",
     max_workers: int = 4,
+    render_engine: str = "graphviz",
 ) -> str:
     """Batch-process multiple visualization configs in parallel.
 
@@ -71,12 +73,19 @@ async def batch_process(
         format: Output format — png, pdf, svg, or dot.
         style: Style ID to apply (empty string for default).
         max_workers: Maximum parallel workers (max 8).
+        render_engine: graphviz (default) or svg, for the module types the SVG
+                     engine paints (use an sv_* style, or '' for its default).
 
     Returns:
         JSON with summary (success/failure counts) and individual results.
     """
     try:
         validate_format(format)
+        if render_engine not in RENDER_ENGINES:
+            raise ValueError(
+                f"Invalid render_engine '{render_engine}'. "
+                f"Allowed: {', '.join(sorted(RENDER_ENGINES))}"
+            )
         check_rate_limit("batch_process")
         if module_type not in ALLOWED_MODULE_TYPES:
             return format_error(
@@ -113,6 +122,7 @@ async def batch_process(
                     format=format,
                     style=style or None,
                     max_workers=max_workers,
+                    render_engine=render_engine,
                 )
                 return result.to_dict()
             finally:
