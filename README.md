@@ -2,7 +2,7 @@
 
 MCP (Model Context Protocol) server for the [USecVisLib](https://github.com/vulnex/usecvislib) security visualization library.
 
-Provides 64 tools, 19 resources, and 10 prompt templates that give AI assistants full access to security visualization capabilities — attack trees, attack graphs, threat models, MAESTRO agentic-AI threat models, kill chains (MITRE ATT&CK), incident timelines, vulnerability dependency trees, cloud diagrams, binary analysis, privilege gradients, and more.
+Provides 65 tools, 19 resources, and 10 prompt templates that give AI assistants full access to security visualization capabilities — attack trees, attack graphs, threat models, MAESTRO agentic-AI threat models, kill chains (MITRE ATT&CK and ATLAS), incident timelines, vulnerability dependency trees, cloud diagrams, binary analysis, privilege gradients, and more.
 
 See every template and style preset rendered in the **[USecVisLib gallery](https://vulnex.github.io/usecvislib-gallery/)**.
 
@@ -20,7 +20,7 @@ See every template and style preset rendered in the **[USecVisLib gallery](https
 - [Transport Options](#transport-options)
 - [Authentication](#authentication)
 - [Configuration Reference](#configuration-reference)
-- [Tools (64)](#tools-64)
+- [Tools (65)](#tools-65)
   - [Render engines](#render-engines)
 - [Resources (19)](#resources-19)
 - [Prompts (10)](#prompts-10)
@@ -283,7 +283,7 @@ The [`agents/`](agents/) directory contains setup instructions for specific AI c
 | **OpenClaw** | [`agents/openclaw.md`](agents/openclaw.md) | YAML config |
 | **OpenAI Codex** | [`agents/openai.yaml`](agents/openai.yaml) | YAML dependency spec |
 
-Each guide covers MCP server configuration, skill/knowledge loading, and agent-specific notes. All agents connect to the same 64 tools with identical function names.
+Each guide covers MCP server configuration, skill/knowledge loading, and agent-specific notes. All agents connect to the same 65 tools with identical function names.
 
 ## Transport Options
 
@@ -328,15 +328,21 @@ Auth is ignored in `stdio` mode (local pipe — no network exposure).
 | `USECVISLIB_MCP_ALLOWED_INPUT_DIRS` | *(empty)* | Comma-separated allowed dirs for binary file access (unrestricted when empty) |
 | `USECVISLIB_MCP_RATE_LIMIT` | `60` | Max tool calls per minute per tool (0 = unlimited) |
 
-## Tools (64)
+## Tools (65)
 
 ### Render engines
 
-The graph tools render with Graphviz by default. Pass `render_engine="svg"` to use USecVisLib's built-in SVG engine instead: self-contained, interactive SVG (PNG and PDF via cairosvg) with the `sv_*` style presets. It is available for attack trees, attack graphs, threat models (DFD only), component diagrams, dependency graphs, kill chains, incident timelines, vulnerability trees and the MAESTRO graph view. When `render_engine="svg"` and `style` is left at the tool's default, the SVG engine's `sv_default` is used.
+The graph tools render with Graphviz by default. Pass `render_engine="svg"` to use USecVisLib's built-in SVG engine instead: self-contained, interactive SVG (PNG and PDF via cairosvg) with the `sv_*` style presets. It is available for attack trees, attack graphs, threat models (DFD only), privilege gradients, component diagrams, dependency graphs, kill chains, incident timelines, vulnerability trees and the MAESTRO graph view. When `render_engine="svg"` and `style` is left at the tool's default, the SVG engine's `sv_default` is used.
 
 `shine=True` post-processes Graphviz SVG output (modern font stack, drop shadows, hover emphasis). It needs `format="svg"` and the Graphviz engine, and is available for attack trees, attack graphs, threat models, privilege gradients, component diagrams, dependency graphs and MAESTRO.
 
 Every engine, view and preset is shown in the [gallery](https://vulnex.github.io/usecvislib-gallery/).
+
+### Grouping, collapse and drift
+
+`generate_attack_graph` and `generate_privilege_gradient` can group nodes and collapse groups into summary nodes, so large networks stay readable: `group_by` (a host field such as `zone`, or `ip/24` to group attack-graph hosts by network; a component field such as `role` for privilege gradients, whose groups never span zones), `collapse` (`"all"`, `"auto"` with `max_nodes`, `"none"`, or a list of group ids) and, for privilege gradients, `keep="inversions"` / `keep_ids` to keep chosen components drawn next to their collapsed group. `get_attack_graph_stats` and `get_privilege_gradient_stats` take `group_by` for per-group counts.
+
+`render_drift` draws the changes between two versions of an attack graph or privilege gradient in one picture (added, removed and modified elements; for privilege gradients also new, fixed and changed inversions) and returns the change summary with it.
 
 ### Attack Trees (4)
 | Tool | Description |
@@ -437,17 +443,18 @@ Every engine, view and preset is shown in the [gallery](https://vulnex.github.io
 | `export_data` | Export to JSON, CSV, YAML, or Markdown |
 | `generate_report` | Generate multi-format report |
 
-### Analysis (3)
+### Analysis (4)
 | Tool | Description |
 |------|-------------|
 | `find_chokepoints` | Find network chokepoints in attack graphs |
 | `analyze_centrality` | Compute betweenness centrality |
 | `compare_visualizations` | Structural diff between two configs |
+| `render_drift` | Drift picture between two versions of an attack graph or privilege gradient, with the change summary (and new / fixed / changed inversions) |
 
 ### Kill Chain / MITRE ATT&CK (4)
 | Tool | Description |
 |------|-------------|
-| `generate_kill_chain` | Generate a kill chain (Cyber Kill Chain, ATT&CK tactics or custom phases) |
+| `generate_kill_chain` | Generate a kill chain (Cyber Kill Chain, ATT&CK tactics, ATLAS tactics or custom phases) |
 | `validate_kill_chain` | Validate a kill chain configuration |
 | `get_kill_chain_stats` | Get statistics (techniques, detection and mitigation coverage) |
 | `analyze_kill_chain_coverage` | List undetected, unmitigated and critical-gap techniques |

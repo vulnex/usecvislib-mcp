@@ -10,12 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Requires usecvislib 0.6.0.
 
 ### Added
-- 15 tools for the usecvislib 0.5/0.6 features (64 tools in total):
+- 16 tools for the usecvislib 0.5/0.6 features (65 tools in total):
   - Kill chain / MITRE ATT&CK: `generate_kill_chain`, `validate_kill_chain`, `get_kill_chain_stats`, `analyze_kill_chain_coverage`
   - Incident timeline: `generate_incident_timeline` (swimlane, gantt, vertical, compact), `validate_incident_timeline`, `get_incident_timeline_stats`
   - Vulnerability dependency tree: `generate_vuln_tree` (tree, vulnerable_only, critical_path), `validate_vuln_tree`, `get_vuln_tree_stats`
   - MAESTRO agentic-AI threat model: `generate_maestro_threat_model` (layered, graph, heatmap), `validate_maestro_threat_model`, `get_maestro_stats`, `export_maestro` (to STRIDE, attack graph or privilege gradient)
   - Binary analysis: `analyze_binary_digraph` (byte-pair plot)
+  - Drift picture: `render_drift` draws the changes between two versions of an attack graph or privilege gradient (added, removed, modified; for privilege gradients also new, fixed and changed inversions) and returns the change summary and, for privilege gradients, the `inversions` (`new` / `fixed` / `changed`). Options: `format` (png, pdf, svg), `render_engine`, `style`, `show_unchanged`, `ignore_paths`, `diff_colors`, and the grouping options below.
+- Grouping and collapse: `group_by`, `collapse` (`"all"`, `"auto"`, `"none"` or group ids) and `max_nodes` on `generate_attack_graph` and `generate_privilege_gradient`; `keep` (`"inversions"`) and `keep_ids` on `generate_privilege_gradient` keep chosen components drawn next to their collapsed group. `get_attack_graph_stats` and `get_privilege_gradient_stats` take `group_by` and return per-group counts.
+- `render_engine` on `generate_privilege_gradient` (usecvislib's SVG engine now paints privilege gradients, with `sv_*` presets).
+- `render_engine` on `batch_process`.
+- Schema resources: attack-graph grouping (`graph.group_by` / `collapse` / `max_nodes`, host `group`), `sources` / `source_count` ("confirmed by N sources"), `inferred` / `confidence` on exploits and network edges; privilege-gradient grouping and keep options, component `group`, influence `type`, style presets and SVG engine; kill-chain `atlas` framework and inferred techniques; timeline `technique_inferred` / `technique_confidence`. The `create_kill_chain` prompt and the kill-chain tool describe ATLAS and inferred techniques.
 - `style` parameter (bv_* presets) on the binary analysis tools.
 - `render_engine` parameter (`graphviz` or `svg`) on the generate tools whose modules support usecvislib's SVG engine; the tool's default Graphviz style switches to `sv_default` automatically.
 - `shine` parameter to post-process Graphviz SVG output.
