@@ -73,6 +73,25 @@ async def test_detect_privilege_inversions(sample_privilege_gradient_config):
 
 
 @skip_no_privilege_gradient
+@pytest.mark.asyncio
+async def test_schema_trust_level_detects_inversions(sample_privilege_gradient_config):
+    """Zones written as the schema documents (trust_level) give their real inversions.
+
+    With the field the schema used to document ('level'), every zone had trust 0
+    and no inversion was ever found.
+    """
+    from usecvislib_mcp.resources.schemas import get_privilege_gradient_schema
+    from usecvislib_mcp.tools.privilege_gradient import detect_privilege_inversions
+
+    zone_fields = json.loads(get_privilege_gradient_schema())["sections"]["zones"]["value_fields"]
+    assert "trust_level" in zone_fields and "level" not in zone_fields
+    config = dict(sample_privilege_gradient_config)
+    config["influences"] = [{"from": "cdn", "to": "api", "type": "control"}]
+    parsed = json.loads(await detect_privilege_inversions(config))
+    assert [(i["from"], i["to"], i["severity"]) for i in parsed] == [("cdn", "api", "high")]
+
+
+@skip_no_privilege_gradient
 @skip_no_graphviz
 @pytest.mark.asyncio
 async def test_analyze_zone_influence(sample_privilege_gradient_config):

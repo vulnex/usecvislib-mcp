@@ -279,10 +279,10 @@ influence each other, highlighting potential security issues.
     "description": "Trust zones for corporate network"
   },
   "zones": {
-    "internet": {"label": "Internet", "level": 0, "color": "#e74c3c"},
-    "dmz": {"label": "DMZ", "level": 1, "color": "#f39c12"},
-    "internal": {"label": "Internal", "level": 2, "color": "#3498db"},
-    "restricted": {"label": "Restricted", "level": 3, "color": "#2ecc71"}
+    "internet": {"label": "Internet", "trust_level": 0, "color": "#e74c3c"},
+    "dmz": {"label": "DMZ", "trust_level": 1, "color": "#f39c12"},
+    "internal": {"label": "Internal", "trust_level": 2, "color": "#3498db"},
+    "restricted": {"label": "Restricted", "trust_level": 3, "color": "#2ecc71"}
   },
   "components": {
     "cdn": {"label": "CDN", "zone": "internet"},

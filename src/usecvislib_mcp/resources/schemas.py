@@ -376,10 +376,11 @@ PRIVILEGE_GRADIENT_SCHEMA = {
             "type": "dict of dicts, keyed by zone ID",
             "value_fields": {
                 "label": {"type": "string", "required": True},
-                "level": {
+                "trust_level": {
                     "type": "integer",
                     "required": True,
-                    "description": "Trust level (higher = more privileged)",
+                    "description": "Trust level (higher = more privileged); influences from a "
+                    "lower-trust zone into a higher-trust one are inversions",
                 },
                 "color": {"type": "string"},
             },

@@ -28,6 +28,7 @@ Requires usecvislib 0.6.0.
 - Requires `usecvislib>=0.6.0`.
 
 ### Fixed
+- Privilege gradient schema resource and the `create_privilege_gradient` prompt documented the zone trust level as `level`; usecvislib reads `trust_level`, so configs written from them had every zone at trust 0 and no inversion was ever detected. They now say `trust_level`.
 - `generate_custom_diagram` failed on every call: it passed `styleid` to `BuildCustomDiagram()`, which takes no style. The style is now applied through the diagram settings.
 - Component diagram and dependency graph schema resources documented an outdated config format (`diagram`/`graph` sections, dicts of layers and components). They now match what usecvislib reads (`title`, a list of layers with nested components, a list of modules), so configs written from the schema render.
 - Component diagram and dependency graph tools defaulted to style IDs that do not exist (`comp_default`, `dep_default`); they now default to `cd_default` and `dg_default`.

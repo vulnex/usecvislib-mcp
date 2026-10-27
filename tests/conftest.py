@@ -294,9 +294,9 @@ def sample_privilege_gradient_config():
             "description": "Test trust zones",
         },
         "zones": {
-            "external": {"label": "External", "level": 0, "color": "#e74c3c"},
-            "dmz": {"label": "DMZ", "level": 1, "color": "#f39c12"},
-            "internal": {"label": "Internal", "level": 2, "color": "#3498db"},
+            "external": {"label": "External", "trust_level": 0, "color": "#e74c3c"},
+            "dmz": {"label": "DMZ", "trust_level": 1, "color": "#f39c12"},
+            "internal": {"label": "Internal", "trust_level": 2, "color": "#3498db"},
         },
         "components": {
             "cdn": {"label": "CDN", "zone": "external"},
