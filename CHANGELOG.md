@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0] - Unreleased
 
-Requires usecvislib 0.6.0.
+Requires usecvislib 0.6.1.
 
 ### Added
 - 16 tools for the usecvislib 0.5/0.6 features (65 tools in total):
@@ -30,7 +30,7 @@ Requires usecvislib 0.6.0.
 - Tests for every new tool, the engine options, and every bundled template of the new modules.
 
 ### Changed
-- Requires `usecvislib>=0.6.0`.
+- Requires `usecvislib>=0.6.1` (0.6.0 installed with pip lacked its shape gallery).
 
 ### Fixed
 - Privilege gradient schema resource and the `create_privilege_gradient` prompt documented the zone trust level as `level`; usecvislib reads `trust_level`, so configs written from them had every zone at trust 0 and no inversion was ever detected. They now say `trust_level`.
